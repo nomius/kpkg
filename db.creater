@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+
+
+PKG_MIRROR="200.3.124.37"
+PKG_MIRROR_PATH="pub/kwort/2.4/packages"
+PKG_MIRROR_PROTOCOL="http://"
+
+function kpkg_get_standalone_package_data(){
+	fullname_with_ext=$(basename ${1})
+	IFS='.'
+	b=(${fullname_with_ext/*-/})
+	for((x=1;x<=$((${#b[@]} - 1));x++)); do
+		if [ -z "${PKG_EXTENSION}" ]; then
+			PKG_EXTENSION=${b[${x}]}
+		else
+			PKG_EXTENSION="${PKG_EXTENSION}.${b[${x}]}"
+		fi
+	done
+	if [ -e "${1}" ]; then
+		PKG_MD5=$(md5sum "${1}" | awk -F " " '{print $1}')
+	fi
+	fullname=$(basename "${1}" ".${PKG_EXTENSION}")
+	IFS='-'
+	fullname_array=(${fullname})
+	i=$((${#fullname_array[@]} - 1))
+	PKG_BUILD=${fullname_array[${i}]/[A-Za-z]*/}
+	PKG_AUTHOR=$(echo ${fullname_array[${i}]} | sed "s/^[0-9]*//g")
+	i=$((${i} - 1))
+	PKG_ARCH=${fullname_array[${i}]}
+	i=$((${i} - 1))
+	PKG_VERSION=${fullname_array[${i}]}
+	i=$((${i} - 1))
+	for((x=0;x<=${i};x++)); do
+		if [ -z "${PKG_NAME}" ]; then
+			PKG_NAME="${fullname_array[${x}]}"
+		else
+			PKG_NAME="${PKG_NAME}-${fullname_array[${x}]}"
+		fi
+	done
+	IFS=" "
+}
+
+n=0
+mkdir ../db
+for j in *; do
+	if [ -d "${j}" ]; then
+		cd "${j}"
+		PKG_SERIE=${j}
+		mkdir ../../db/${PKG_SERIE}
+		for y in *; do
+			n=$((${n} + 1))
+			PKG_NAME=""
+			PKG_VERSION=""
+			PKG_ARCH=""
+			PKG_BUILD=""
+			PKG_EXTENSION=""
+			kpkg_get_standalone_package_data ${y}
+			echo "Package Name: ${PKG_NAME}"
+			echo " * version:   ${PKG_VERSION}"
+			echo " * arch:      ${PKG_ARCH}"
+			echo " * build:     ${PKG_BUILD}"
+			echo " * author:    ${PKG_AUTHOR}"
+			echo " * extension: ${PKG_EXTENSION}"
+			echo " * serie:     ${PKG_SERIE}"
+			echo " * md5:       ${PKG_MD5}"
+			echo " * Address:   ${PKG_MIRROR_PROTOCOL}${PKG_MIRROR}/${PKG_MIRROR_PATH}/${PKG_SERIE}/${PKG_NAME}-${PKG_VERSION}-${PKG_ARCH}-${PKG_BUILD}.${PKG_EXTENSION}"
+			echo "==============================================="
+			mkdir ../../db/${PKG_SERIE}/${PKG_NAME}
+			echo "PKG_NAME=${PKG_NAME}" > ../../db/${PKG_SERIE}/${PKG_NAME}/data
+			echo "PKG_SERIE=${PKG_SERIE}" >> ../../db/${PKG_SERIE}/${PKG_NAME}/data
+			echo "PKG_VERSION=${PKG_VERSION}" >> ../../db/${PKG_SERIE}/${PKG_NAME}/data
+			echo "PKG_ARCH=${PKG_ARCH}" >> ../../db/${PKG_SERIE}/${PKG_NAME}/data
+			echo "PKG_BUILD=${PKG_BUILD}" >> ../../db/${PKG_SERIE}/${PKG_NAME}/data
+			echo "PKG_AUTHOR=${PKG_AUTHOR}" >> ../../db/${PKG_SERIE}/${PKG_NAME}/data
+			echo "PKG_EXTENSION=${PKG_EXTENSION}" >> ../../db/${PKG_SERIE}/${PKG_NAME}/data
+			echo "PKG_MIRROR=${PKG_MIRROR}" >> ../../db/${PKG_SERIE}/${PKG_NAME}/data
+			echo "PKG_MIRROR_PATH=${PKG_MIRROR_PATH}" >> ../../db/${PKG_SERIE}/${PKG_NAME}/data
+			echo "PKG_MIRROR_PROTOCOL=${PKG_MIRROR_PROTOCOL}" >> ../../db/${PKG_SERIE}/${PKG_NAME}/data
+			echo "PKG_MD5=${PKG_MD5}" >> ../../db/${PKG_SERIE}/${PKG_NAME}/data
+		done
+		cd ..
+	fi
+done
+cd ../db
+tar cpzf ../db.tar.gz .
+echo "${n} packages in database"
