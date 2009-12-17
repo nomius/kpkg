@@ -281,6 +281,11 @@ int GetDataFromMirrorDatabase(char *db, char *field, char *value)
 	return 0;
 }
 
+/**
+ * This function provides a list of the installed packages in the system
+ * @param Packages A pointer to the list of packages that will be filled with data
+ * @return If no error ocurr, 0 is returned. If an error ocurr -1 is returned (and an error message is issued).
+ */
 int GetListOfPackages(ListOfPackages *Packages)
 {
 	char query[MAX_QUERY];
