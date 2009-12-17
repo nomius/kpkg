@@ -253,13 +253,23 @@ int GetFieldCallback(void *args, int numCols, char **results, char **columnNames
 	return 0;
 }
 
+/**
+ * This function is the callback issued by the GetListOfPackages function. It saves the database data in the ListOfPackages structure given
+ * @param args The field where the data is going to be saved
+ * @param numCols The numbers of columns retrieved from the database
+ * @param results The data retrieved of each column
+ * @param columnNames The name of the columns retrieved
+ * @return This function returns always 1 as only one field is enough
+ */
 int SavePackageListCallback(void *args, int numCols, char **results, char **columnNames)
 {
 	int i = 0;
 	ListOfPackages *ptr = (ListOfPackages *)args;
 
 	ptr->packages = realloc(ptr->packages, (ptr->index+1)*sizeof(char *));
-	for (i=0; i<numCols; i++){
+	ptr->packages = realloc(ptr->versions, (ptr->index+1)*sizeof(char *));
+	ptr->packages = realloc(ptr->builds, (ptr->index+1)*sizeof(char *));
+	for (i=0; i<numCols; i++) {
 		if (!strcmp(columnNames[i], "NAME"))
 			ptr->packages[ptr->index] = strdup(results[i]);
 		if (!strcmp(columnNames[i], "VERSION"))
