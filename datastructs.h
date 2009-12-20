@@ -5,7 +5,7 @@
  * BSD-lite license. Bugs, suggests, nor projects: dcortarello@gmail.com
  *
  * Program: kpkg
- * Version: 3.0e
+ * Version: 4.0a
  *
  *
  * Copyright (c) 2005-2008, David B. Cortarello
@@ -66,6 +66,13 @@
 #define MIRRORS_DIRECTORY "/var/packages/mirrors"
 #define PACKAGES_DIRECTORY "/var/packages/downloads"
 
+#define PKG_NAME 40
+#define PKG_VERSION 10
+#define PKG_ARCH 10
+#define PKG_BUILD 3
+#define PKG_EXTENSION 10
+#define PKG_CRC	11
+
 /* Distribution databases */
 /* CREATE TABLE PACKAGES(NAME TEXT KEY ASC, VERSION TEXT, ARCH TEXT, BUILD TEXT, EXTENSION TEXT, TEXT CRC); */
 /* CREATE TABLE FILESPKG(NAME TEXT, FILENAME TEXT NOT NULL, CRC TEXT) */
@@ -75,12 +82,12 @@
 /* CREATE TABLE MDATA (FIELD TEXT KEY, VALUE TEXT) */
 
 typedef struct _PkgData {
-	char name[40];
-	char version[10];
-	char arch[10];
-	char build[3];
-	char extension[10];
-	char crc[32];
+	char name[PKG_NAME+1];
+	char version[PKG_VERSION+1];
+	char arch[PKG_ARCH+1];
+	char build[PKG_BUILD+1];
+	char extension[PKG_EXTENSION+1];
+	char crc[PKG_CRC+1];
 	int  files_num;
 	char **files;
 } PkgData;
@@ -90,7 +97,7 @@ typedef struct _myDir {
 	int index;
 } myDir;
 
-typedef struct _ListOfDirectories {
+typedef struct _ListOfPackages {
 	char **packages;
 	char **versions;
 	char **builds;
