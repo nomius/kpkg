@@ -5,7 +5,7 @@
  * BSD-lite license. Bugs, suggests, nor projects: dcortarello@gmail.com
  *
  * Program: kpkg
- * Version: 3.0e
+ * Version: 4.0a
  *
  *
  * Copyright (c) 2005-2008, David B. Cortarello
@@ -149,31 +149,31 @@ int SearchPkgPrintCallback(void *args, int numCols, char **results, char **colum
 			if (!ecsv)
 				printf("Package name: %s\n", results[i]);
 			else
-				strcpy(Data.name, results[i]);
+				strncpy(Data.name, results[i], PKG_NAME);
 		}
 		if (!strcmp(columnNames[i], "VERSION")) {
 			if (!ecsv)
 				printf(" '-> Version: %s\n", results[i]);
 			else
-				strcpy(Data.version, results[i]);
+				strncpy(Data.version, results[i], PKG_VERSION);
 		}
 		if (!strcmp(columnNames[i], "ARCH")) {
 			if (!ecsv)
 				printf(" '->    Arch: %s\n", results[i]);
 			else
-				strcpy(Data.arch, results[i]);
+				strncpy(Data.arch, results[i], PKG_ARCH);
 		}
 		if (!strcmp(columnNames[i], "BUILD")) {
 			if (!ecsv)
 				printf(" '->   Build: %s\n", results[i]);
 			else
-				strcpy(Data.build, results[i]);
+				strncpy(Data.build, results[i], PKG_BUILD);
 		}
 		if (!strcmp(columnNames[i], "EXTENSION")) {
 			if (!ecsv)
 				printf(" '->     Ext: %s\n", results[i]);
 			else
-				strcpy(Data.extension, results[i]);
+				strncpy(Data.extension, results[i], PKG_EXTENSION);
 		}
 	}
 	if (ecsv)
@@ -222,15 +222,15 @@ int ReturnSilentDataFromDB(void *args, int numCols, char **results, char **colum
 
 	for (i=0; i<numCols; i++){
 		if (!strcmp(columnNames[i], "NAME"))
-			strcpy(ptr->name, results[i]);
+			strncpy(ptr->name, results[i], PKG_NAME);
 		if (!strcmp(columnNames[i], "VERSION"))
-			strcpy(ptr->version, results[i]);
+			strncpy(ptr->version, results[i], PKG_VERSION);
 		if (!strcmp(columnNames[i], "ARCH"))
-			strcpy(ptr->arch, results[i]);
+			strncpy(ptr->arch, results[i], PKG_ARCH);
 		if (!strcmp(columnNames[i], "BUILD"))
-			strcpy(ptr->build, results[i]);
+			strncpy(ptr->build, results[i], PKG_BUILD);
 		if (!strcmp(columnNames[i], "EXTENSION"))
-			strcpy(ptr->extension, results[i]);
+			strncpy(ptr->extension, results[i], PKG_EXTENSION);
 	}
 
 	return 0;
