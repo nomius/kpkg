@@ -5,7 +5,7 @@
  * BSD-lite license. Bugs, suggests, nor projects: dcortarello@gmail.com
  *
  * Program: kpkg
- * Version: 3.0e
+ * Version: 4.0a
  *
  *
  * Copyright (c) 2005-2008, David B. Cortarello
