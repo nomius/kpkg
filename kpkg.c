@@ -5,7 +5,7 @@
  * BSD-lite license. Bugs, suggests, nor projects: dcortarello@gmail.com
  *
  * Program: kpkg
- * Version: 3.0e
+ * Version: 4.0a
  *
  *
  * Copyright (c) 2005-2008, David B. Cortarello
@@ -36,8 +36,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-
 #include "datastructs.h"
+#include "sqlite_backend.h"
 
 /**
  * This function removes the whole package structure from PACKAGES and FILESPKG tables
@@ -62,7 +62,7 @@ int RemovePkg(char *name, int silent)
 	}
 
 	memset(&Data, '\0', sizeof(Data));
-	strcpy(Data.name, name);
+	strncpy(Data.name, name, PKG_NAME);
 
 	if (!ExistsPkg(&Data)) {
 		if (silent)
@@ -373,15 +373,15 @@ int UpgradePkg(char *package)
 	PkgData Data;
 	ListOfPackages Packages;
 	char *MIRROR = NULL;
-	int ret = 0, fd = 0, PrevIndex = 0;
+	int ret = 0, OrigIndex = 0, i = 0;
 
 	memset(&Data, '\0', sizeof(Data));
 
 	if (package) {
 		/* Upgrade a single package */
-		if ((fd = open(package, O_RDONLY)) >= 0) {
+		if ((i = open(package, O_RDONLY)) >= 0) {
 			/* Ok, the package exists */
-			close(fd);
+			close(i);
 			if (FillPkgDataFromPackage(&Data, basename(package))) {
 				fprintf(stdout, "Wrong package name format. It should be \"name-version-arch-build.ext\"\n");
 				return -1;
@@ -398,44 +398,54 @@ int UpgradePkg(char *package)
 		}
 		else {
 			/* Ok the package wasn't phisically given */
-			if ((ret =RemovePkg(package, 1)) == -1) {
-				fprintf(stderr, "Failed to remove the old version of %s\n", Data.name);
-				return -1;
+			strncpy(Data.name, package, PKG_NAME);
+		    if (!ExistsPkg(&Data)) {
+				fprintf(stdout, "Package %s isn't installed (perhaps you meant install?)\n", package);
+				return 1;
 			}
-			else if (ret == 1)
-				fprintf(stdout, "The package %s isn't installed. Installing the new version anyways\n", package);
-			if (InstallPkg(package) == -1) {
-				fprintf(stderr, "Could not install the new version of %s\n", package);
+			if ((MIRROR = NewVersionAvailable(&Data))) {
+				setenv("MIRROR", MIRROR, 1);
+				free(MIRROR);
+				if (DownloadPkg(Data.name, NULL) == -1)
+					return -1;
+				if ((ret = RemovePkg(Data.name, 1)) == -1) {
+					fprintf(stderr, "Failed to remove the old version of %s\n", Data.name);
+					return -1;
+				}
+				if (InstallPkg(Data.name) == -1) {
+					fprintf(stderr, "Could not install the new version of %s\n", Data.name);
+				}
 			}
 			return 0;
 		}
 	}
 	else {
-#if 0
 		/* Oooook, let's upgrade the whole thing */
-		if (GetListOfPackages(Packages) == -1)
+		if (GetListOfPackages(&Packages) == -1)
 			return -1;
 		OrigIndex = Packages.index;
 		for (i=0;i<OrigIndex;i++) {
-			if ((MIRROR = NewVersionAvailable(Packages))) {
-				if (DownloadPkg(Packages.packages[i], NULL) == -1)
+			/* Let's serialize the PkgData structure */
+			strncpy(Data.name, Packages.packages[i], PKG_NAME);
+			strncpy(Data.version, Packages.versions[i], PKG_VERSION);
+			strncpy(Data.build, Packages.builds[i], PKG_BUILD);
+			/* Check for new versions in mirrors */
+			if ((MIRROR = NewVersionAvailable(&Data))) {
+				setenv("MIRROR", MIRROR, 1);
+				free(MIRROR);
+				if (DownloadPkg(Data.name, NULL) == -1)
 					continue;
-				if (RemovePkg(Packages.packages[i], 1) == -1) {
+				if (RemovePkg(Data.name, 1) == -1) {
 					fprintf(stderr, "Failed to remove the old version of %s\n", Data.name);
 					return -1;
 				}
-				setenv("MIRROR", MIRROR, 1);
-				if (InstallPkg(Packages.packages[i]) == -1) {
+				if (InstallPkg(Data.name) == -1) {
 					fprintf(stderr, "Could not install the new version of %s\n", Data.name);
 					return -1;
 				}
-				free(MIRROR);
 			}
 			return 0;
 		}
-#else
-		fprintf(stderr, "Functionality not implemented\n");
-#endif
 	}
 }
 
