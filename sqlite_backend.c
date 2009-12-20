@@ -5,7 +5,7 @@
  * BSD-lite license. Bugs, suggests, nor projects: dcortarello@gmail.com
  *
  * Program: kpkg
- * Version: 3.0e
+ * Version: 4.0a
  *
  *
  * Copyright (c) 2005-2008, David B. Cortarello
@@ -152,7 +152,7 @@ int SearchFileInPkgDB(char *filename)
  * @param Data The common data structure
  * @return If no error ocurr, 0 is returned, otherwise -1 (And an error message is issued by stderr).
  */
-int InsertPkgData(PkgData *Data)
+static int InsertPkgData(PkgData *Data)
 {
     char query[MAX_QUERY];
 
@@ -172,7 +172,7 @@ int InsertPkgData(PkgData *Data)
  * @param crc A checksum for the file (Now it's not being used)
  * @return If no error ocurr, 0 is returned, otherwise -1 (And an error message is issued by stderr).
  */
-int InsertPkgFile(char *name, char *filename, char *crc)
+static int InsertPkgFile(char *name, char *filename, char *crc)
 {
     char query[MAX_QUERY];
 
@@ -298,7 +298,7 @@ int GetListOfPackages(ListOfPackages *Packages)
 		return -1;
 	}
 
-	snprintf(query, MAX_QUERY, "SELECT NAME VERSION BUILD FROM PACKAGES");
+	snprintf(query, MAX_QUERY, "SELECT NAME, VERSION, BUILD FROM PACKAGES");
 	if (sqlite3_exec(Database, query, &SavePackageListCallback, Packages, NULL)) {
 		fprintf(stderr, "Couldn't get the list of installed packages (%s)\n", sqlite3_errmsg(Database));
 		return -1;
@@ -308,18 +308,18 @@ int GetListOfPackages(ListOfPackages *Packages)
 	return 0;
 }
 
-#if 0
-char *NewVersionAvailable(ListOfPackages *Packages)
+char *NewVersionAvailable(PkgData *Data)
 {
 	DIR *dip;
 	struct dirent *dit;
 	char tmp[MAX_QUERY];
 	sqlite3 *TMPDatabase;
-	PkgData Data
+	PkgData TMPData;
+	char *ret = NULL;
 
 	if ((dip = opendir(MIRRORS_DIRECTORY)) == NULL) {
 		fprintf(stderr, "Couldn't open the mirror's database directory %s (%s)\n", MIRRORS_DIRECTORY, strerror(errno));
-		return -1;
+		return NULL;
 	}
 
 	while ((dit = readdir(dip)) != NULL) {
@@ -329,18 +329,23 @@ char *NewVersionAvailable(ListOfPackages *Packages)
 		if (sqlite3_open(tmp, &TMPDatabase)) {
 			fprintf(stderr, "Failed to open database %s (%s)\n", dbname, sqlite3_errmsg(Database));
 			closedir(dip);
-			return -1;
+			return NULL;
 		}
-		snprintf(tmp, MAX_QUERY, "SELECT NAME, VERSION, BUILD FROM MIRRORPKG WHERE NAME = '%s'", Packages->Packages[Packages->index]);
-		if (sqlite3_exec(TMPDatabase, tmp, &CompareVerBuiCallback, &Data, NULL)) {
+		memset(&TMPData, '\0', sizeof(Data));
+		snprintf(tmp, MAX_QUERY, "SELECT NAME, VERSION, BUILD, FROM MIRRORPKG WHERE NAME = '%s'", Data->name);
+		if (sqlite3_exec(TMPDatabase, tmp, &SavePackageListCallback, &TMPData, NULL)) {
 			closedir(dip);
-			return -1;
+			return NULL;
 		}
 		sqlite3_close(TMPDatabase);
+		/* Return the mirror if the version found are differents */
+		if (TMPData.version[0] != '\0' && (strcmp(TMPData.version, Data->version) || strcmp(TMPData.build, Data->version))) {
+			ret = strdup(dit->d_name);
+			closedir(dip);
+			return ret;
+		}
 	}
 	closedir(dip);
 
-	return 0;
-
+	return NULL;
 }
-#endif
