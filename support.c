@@ -5,7 +5,7 @@
  * BSD-lite license. Bugs, suggests, nor projects: dcortarello@gmail.com
  *
  * Program: kpkg
- * Version: 3.0e
+ * Version: 4.0a
  *
  *
  * Copyright (c) 2005-2008, David B. Cortarello
@@ -49,7 +49,7 @@ int ExistsPkg(PkgData *Data)
 	char query[MAX_QUERY];
 	char versionb[10];
 
-	strcpy(versionb, Data->version);
+	strncpy(versionb, Data->version, PKG_VERSION);
 	memset(Data->version, '\0', sizeof(Data->version));
 
 	snprintf(query, MAX_QUERY, "SELECT NAME, VERSION, ARCH, BUILD, EXTENSION FROM PACKAGES WHERE NAME = '%s'", Data->name);
@@ -59,7 +59,7 @@ int ExistsPkg(PkgData *Data)
 	}
 
 	if (*Data->version == '\0') {
-		strcpy(Data->version, versionb);
+		strncpy(Data->version, versionb, PKG_VERSION);
 		return 0;
 	}
 
