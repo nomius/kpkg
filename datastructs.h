@@ -58,9 +58,6 @@
 #include <archive_entry.h>
 #include "sqlite_callbacks.h"
 
-#ifndef PATH_MAX
-	#define PATH_MAX 1024
-#endif
 #define MAX_QUERY (PATH_MAX+40+80)
 
 #define MIRRORS_DIRECTORY "/var/packages/mirrors"
