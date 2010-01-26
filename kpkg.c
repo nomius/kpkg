@@ -372,8 +372,8 @@ int UpgradePkg(char *package)
 {
 	PkgData Data;
 	ListOfPackages Packages;
-	char *MIRROR = NULL;
-	int ret = 0, OrigIndex = 0, i = 0;
+	char MIRROR[NAME_MAX];
+	int ret = 0, i = 0;
 
 	memset(&Data, '\0', sizeof(Data));
 
@@ -403,9 +403,8 @@ int UpgradePkg(char *package)
 				fprintf(stdout, "Package %s isn't installed (perhaps you meant install?)\n", package);
 				return 1;
 			}
-			if ((MIRROR = NewVersionAvailable(&Data))) {
+			if ((ret = NewVersionAvailable(&Data, MIRROR))) {
 				setenv("MIRROR", MIRROR, 1);
-				free(MIRROR);
 				if (DownloadPkg(Data.name, NULL) == -1)
 					return -1;
 				if ((ret = RemovePkg(Data.name, 1)) == -1) {
@@ -423,16 +422,14 @@ int UpgradePkg(char *package)
 		/* Oooook, let's upgrade the whole thing */
 		if (GetListOfPackages(&Packages) == -1)
 			return -1;
-		OrigIndex = Packages.index;
-		for (i=0;i<OrigIndex;i++) {
+		for (i=0;i<Packages.index;i++) {
 			/* Let's serialize the PkgData structure */
 			strncpy(Data.name, Packages.packages[i], PKG_NAME);
 			strncpy(Data.version, Packages.versions[i], PKG_VERSION);
 			strncpy(Data.build, Packages.builds[i], PKG_BUILD);
 			/* Check for new versions in mirrors */
-			if ((MIRROR = NewVersionAvailable(&Data))) {
+			if ((ret = NewVersionAvailable(&Data, MIRROR))) {
 				setenv("MIRROR", MIRROR, 1);
-				free(MIRROR);
 				if (DownloadPkg(Data.name, NULL) == -1)
 					continue;
 				if (RemovePkg(Data.name, 1) == -1) {
@@ -444,9 +441,13 @@ int UpgradePkg(char *package)
 					return -1;
 				}
 			}
-			return 0;
+			else if (ret == -1) {
+				fprintf(stderr, "Failed to upgrade %s\n", Data.name);
+				return -1;
+			}
 		}
 	}
+	return 0;
 }
 
 
