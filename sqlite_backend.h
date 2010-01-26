@@ -45,4 +45,4 @@ int InsertPkgDB(PkgData *Data);
 int SearchLinkForPackage(char *name, ListOfLinks *Links, char *MIRROR);
 int GetDataFromMirrorDatabase(char *db, char *field, char *value);
 int GetListOfPackages(ListOfPackages *Packages);
-char *NewVersionAvailable(PkgData *Data);
+int NewVersionAvailable(PkgData *Data, char *MIRROR);
