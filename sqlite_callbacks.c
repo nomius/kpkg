@@ -74,18 +74,17 @@ int RemoveFileCallback(void *args, int numCols, char **results, char **columnNam
 		if (errno != ENOENT)
 			fprintf(stderr, "Could not obtain the file information for %s (%s)\n", filename, strerror(errno));
 
-	/* Save directories, so when all files are removed, we clean those */
+	/* Save directories, so when all files are removed, we clean up those */
 	if (S_ISDIR(myfile.st_mode)) {
 		ptr->directories = realloc(ptr->directories, (ptr->index+1)*sizeof(char *));
 		ptr->directories[ptr->index] = strdup(filename);
 		ptr->index++;
 	}
-	else {
+	else
 		if (unlink(filename)) {
 			fprintf(stderr, "Could not remove %s (%s)\n", filename, strerror(errno));
 			return -1;
 		}
-	}
 
 	return 0;
 }
