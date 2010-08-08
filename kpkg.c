@@ -1,6 +1,6 @@
 /* vim: set sw=4 sts=4 : */
 
-/*
+/* 
  * Author David Bruno Cortarello <Nomius>. Redistribute under the terms of the
  * BSD-lite license. Bugs, suggests, nor projects: dcortarello@gmail.com
  *
@@ -121,7 +121,7 @@ int InstallPkg(char *package)
 		}
 		package = output;
 	}
-	else 
+	else
 		close(fd);
 
 	/* Get the full pathname instead of its relative name */
@@ -151,7 +151,7 @@ int InstallPkg(char *package)
 		fprintf(stderr, "Failed to open database %s (%s)\n", dbname, sqlite3_errmsg(Database));
 		chdir(init_path);
 		free(init_path);
-        return -1;
+		return -1;
 	}
 
 	/* Check if it is already installed */
@@ -169,7 +169,7 @@ int InstallPkg(char *package)
 		return -1;
 	}
 
-	/*Extract the package itself */
+	/* Extract the package itself */
 	if (ExtractPackage(pkgfullpathname, &Data) == -1) {
 		chdir(init_path);
 		free(init_path);
@@ -217,14 +217,14 @@ int DownloadPkg(char *name, char *out)
 	/* This is really ugly, and unfortunally we have to handle it */
 	if (Links.index > 1) {
 		/* Print out all the links with their associated numbers */
-		while(i < Links.index) {
+		while (i < Links.index) {
 			fprintf(stdout, "[%d] %s\n", i, Links.links[i]);
 			i++;
 		}
 		i = 0;
 
 		/* Input to get the link */
-		while(1) {
+		while (1) {
 			/* EOF leaves */
 			if ((input = readline("Which one do you want to download? ")) == NULL) {
 				freeLinks(&Links);
@@ -239,7 +239,7 @@ int DownloadPkg(char *name, char *out)
 			}
 			/* input the "c" letter and its number to get the link comments */
 			else if (*input == 'c') {
-				i = atoi(input+1);
+				i = atoi(input + 1);
 				if (i < Links.index && i >= 0)
 					fprintf(stdout, "Comments for [%d]:\n%s\n", i, Links.comments[i]);
 				else
@@ -265,8 +265,9 @@ int DownloadPkg(char *name, char *out)
 	}
 
 	/* Get the output filename */
-	for (j = strlen(Links.links[i])-1;Links.links[i][j]!='/' && j >=0;j--) ;
-	if (Links.links[i][j] == '/') j++;
+	for (j = strlen(Links.links[i]) - 1; Links.links[i][j] != '/' && j >= 0; j--) ;
+	if (Links.links[i][j] == '/')
+		j++;
 	sprintf(filename, "%s/%s", PACKAGES_DIRECTORY, &(Links.links[i][j]));
 
 	/* If the output already exist and the CRC is ok, then great, we already have it, so there's no need to download it again */
@@ -368,7 +369,7 @@ int UpdateMirrorDB(char *db)
 	}
 
 	while ((dit = readdir(dip)) != NULL) {
-		/* Skip directories . and  .. */
+		/* Skip directories . and .. */
 		if (!strcmp(dit->d_name, ".") || !strcmp(dit->d_name, ".."))
 			continue;
 
@@ -388,8 +389,9 @@ int UpdateMirrorDB(char *db)
 			dbNiceName = strdup(dit->d_name);
 
 			/* Remove the extension to display it nicely with its comment */
-			for (i = strlen(dbNiceName)-1;dbNiceName[i]!='.' && i>=0;i--) ;
-			if (i > 0) dbNiceName[i] = '\0';
+			for (i = strlen(dbNiceName) - 1; dbNiceName[i] != '.' && i >= 0; i--) ;
+			if (i > 0)
+				dbNiceName[i] = '\0';
 			fprintf(stdout, "Comments for [%s]:\n%s\n", dbNiceName, dbDesc);
 			free(dbNiceName);
 		}
@@ -473,7 +475,7 @@ int UpgradePkg(char *package)
 		/* Oooook, let's upgrade the whole thing */
 		if (GetListOfPackages(&Packages) == -1)
 			return -1;
-		for (i=0;i<Packages.index;i++) {
+		for (i = 0; i < Packages.index; i++) {
 			/* Let's serialize the PkgData structure */
 			strncpy(Data.name, Packages.packages[i], PKG_NAME);
 			strncpy(Data.version, Packages.versions[i], PKG_VERSION);
@@ -509,22 +511,21 @@ int UpgradePkg(char *package)
  */
 void say_help(int status)
 {
-	fprintf(stdout,
-"Usage: kpkg OPTION package[s]\n"
-" update           update the mirror's database\n"
-" install          install local package or from a mirror\n"
-" remove           remove a package from the system\n"
-" search           search for a package in the database\n"
-" provides         search for files inside of installed packages\n"
-" download         download a package from a mirror"
-"\n"
-"Kpkg 4.0a by David B. Cortarello (Nomius) <dcortarello@gmail.com>\n\n");
+	fprintf(stdout, "Usage: kpkg OPTION package[s]\n" 
+			" update           update the mirror's database\n" 
+			" install          install local package or from a mirror\n"
+			" remove           remove a package from the system\n" 
+			" search           search for a package in the database\n" 
+			" provides         search for files inside of installed packages\n" 
+			" download         download a package from a mirror" 
+			"\n" 
+			"Kpkg 4.0a by David B. Cortarello (Nomius) <dcortarello@gmail.com>\n\n");
 	exit(status);
 }
 
 int main(int argc, char *argv[])
 {
-    int i = 1;
+	int i = 1;
 	int ret = 0;
 	char *renv = NULL;
 
@@ -552,10 +553,10 @@ int main(int argc, char *argv[])
 	}
 	else if (!strcmp(argv[1], "install"))
 		while (argv[++i] != NULL)
-			ret |= ret!=0?ret:InstallPkg(argv[i]);
+			ret |= ret != 0 ? ret : InstallPkg(argv[i]);
 	else if (!strcmp(argv[1], "remove"))
 		while (argv[++i] != NULL)
-			ret |= ret!=0?ret:RemovePkg(argv[i], 0);
+			ret |= ret != 0 ? ret : RemovePkg(argv[i], 0);
 	else if (!strcmp(argv[1], "search"))
 		while (argv[++i] != NULL)
 			ret |= SearchPkg(argv[i]);
@@ -582,4 +583,3 @@ int main(int argc, char *argv[])
 
 	return ret;
 }
-
