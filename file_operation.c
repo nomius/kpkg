@@ -102,22 +102,27 @@ int ExtractPackage(const char *filename, PkgData *Data)
  */
 int progress_func(void* clientp, double dltotal, double dlnow, double ultotal, double ulnow)
 {
-	int columns, dots, i = 0;
-	double fractiondownloaded = dlnow / dltotal;
+	int columns, dots, i;
+	double fractiondownloaded;
 	char *pcolumns;
 
 	if ((pcolumns = getenv("COLUMNS")) != NULL) {
-		if ((columns = atoi(pcolumns) - 27) < 0)
-			columns = 63;
+		if ((columns = atoi(pcolumns) - 29) < 0)
+			columns = 51;
 	}
 	else
-		columns = 63;
+		columns = 51;
+
+	if (dlnow == 0.0)
+		fractiondownloaded = 0.0;
+	else
+		fractiondownloaded = dlnow / dltotal;
 
 	dots = (int)(fractiondownloaded * columns);
 
 	printf(" %3.0f%% [", fractiondownloaded * 100);
 
-	for ( ; i < dots; i++)
+	for (i = 0; i < dots; i++)
 		printf("=");
 	printf(">");
 
