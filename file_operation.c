@@ -56,7 +56,7 @@ int ExtractPackage(const char *filename, PkgData *Data)
 	flags |= ARCHIVE_EXTRACT_ACL;
 	flags |= ARCHIVE_EXTRACT_FFLAGS;
 	flags |= ARCHIVE_EXTRACT_TIME;
-	flags |=ARCHIVE_EXTRACT_UNLINK;
+	flags |= ARCHIVE_EXTRACT_UNLINK;
 
 	/* Initialize the file extraction structure */
 	a = archive_read_new();
@@ -92,6 +92,43 @@ int ExtractPackage(const char *filename, PkgData *Data)
 }
 
 /**
+ * This function is only for "fancyness". It shows a nice and cute progress bar while downloading a file
+ * @param clientp
+ * @param dltotal The size of the file to be downloaded
+ * @param dltnow The acumulated chunk already downloaded when the function was called
+ * @param ultotal The size of the file to be uploaded (this is not used in kpkg)
+ * @param ultnow The acumulated chunk already uploaded when the function was called (this is not used in kpkg)
+ * @return This function returns always 0
+ */
+int progress_func(void* clientp, double dltotal, double dlnow, double ultotal, double ulnow)
+{
+	int columns, dots, i = 0;
+	double fractiondownloaded = dlnow / dltotal;
+	char *pcolumns;
+
+	if ((pcolumns = getenv("COLUMNS")) != NULL) {
+		if ((columns = atoi(pcolumns) - 27) < 0)
+			columns = 63;
+	}
+	else
+		columns = 63;
+
+	dots = (int)(fractiondownloaded * columns);
+
+	printf(" %3.0f%% [", fractiondownloaded * 100);
+
+	for ( ; i < dots; i++)
+		printf("=");
+	printf(">");
+
+	for ( ; i < columns; i++)
+		printf(" ");
+
+	printf("] [%dK/%dK]\r", ((int)dlnow)/1024, ((int)dltotal)/1024);
+	fflush(stdout);
+}
+
+/**
  * This function downloads a link and save it under the output filename using libcurl
  * @param link The link to be downloaded
  * @param output The filename where the downloaded link will be stored
@@ -106,7 +143,7 @@ int Download(char *link, char *output)
 	/* Open the destination output */
 	if (!(out_file = fopen(output, "w"))) {
 	    fprintf(stderr, "Can't create the output file %s (%s)\n", output, strerror(errno));
-    	return -1;
+		return -1;
 	}
 
 	/* Initialize curl */
@@ -117,10 +154,11 @@ int Download(char *link, char *output)
 	}
 
 	/* Set the curl options */
-	fprintf(stdout, "Downloading [%s]...\n", link);
+	fprintf(stdout, "Downloading: %s\n\n", link);
 	curl_easy_setopt(curl, CURLOPT_URL, link);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, out_file);
 	curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0);
+	curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progress_func);
 
 	/* Do the job */
 	res = curl_easy_perform(curl);
@@ -130,6 +168,7 @@ int Download(char *link, char *output)
 		fclose(out_file);
 		return -1;
 	}
+	printf("\n\nDone\n");
 	fclose(out_file);
 	return 0;
 }
