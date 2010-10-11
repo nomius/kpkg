@@ -42,6 +42,7 @@
 /**
  * This function removes the whole package structure from PACKAGES and FILESPKG tables
  * @param name A package name
+ * @param silent Since this function may get called from UpgradePkg, this will make the function to not print messages like "package not found".
  * @return If no error ocurr, 0 is returned. If the package doesn't exists, 1 is returned (And a message is issued). In case of error, -1 (And an error message is issued)
  */
 int RemovePkg(char *name, int silent)
@@ -189,6 +190,7 @@ int InstallPkg(char *package)
 /**
  * This function downloads a package from the internet looking for its mirrors calling the SearchLinkForPackage 
  * @param name A package name
+ * @param out Since this function may get called by InstallPkg, the full path to the package downloaded will be saved here. If null is given, this will not change.
  * @return If no error ocurr, 0 is returned. If the package doesn't exists in any mirror, 1 is returned. In case of error, -1 (And an error message is issued)
  */
 int DownloadPkg(char *name, char *out)
