@@ -107,9 +107,14 @@ int SearchPkg(char *name)
 		return -1;
 	}
 
-	snprintf(query, MAX_QUERY, "SELECT NAME, VERSION, ARCH, BUILD, EXTENSION FROM PACKAGES WHERE NAME LIKE '%%%s%%'", name);
+	if (!strcmp(name, "/all"))
+		snprintf(query, MAX_QUERY, "SELECT NAME, VERSION, ARCH, BUILD, EXTENSION FROM PACKAGES");
+	else
+		snprintf(query, MAX_QUERY, "SELECT NAME, VERSION, ARCH, BUILD, EXTENSION FROM PACKAGES WHERE NAME LIKE '%%%s%%'", name);
+
 	if (sqlite3_exec(Database, query, &SearchPkgPrintCallback, &found, NULL)) {
 		fprintf(stderr, "Couldn't search for %s (%s)\n", name, sqlite3_errmsg(Database));
+
 		return -1;
 	}
 	sqlite3_close(Database);
