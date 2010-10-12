@@ -70,7 +70,6 @@ int RemoveFileCallback(void *args, int numCols, char **results, char **columnNam
 		return -1;
 	}
 	
-	printf("File [%s]\n", filename);
 	if (strcmp(filename, "./")) {
 		if (stat(filename, &myfile))
 			if (errno != ENOENT)
