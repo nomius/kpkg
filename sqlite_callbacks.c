@@ -69,22 +69,25 @@ int RemoveFileCallback(void *args, int numCols, char **results, char **columnNam
 		fprintf(stderr, "Couldn't remove file %s from database\n", filename);
 		return -1;
 	}
+	
+	printf("File [%s]\n", filename);
+	if (strcmp(filename, "./")) {
+		if (stat(filename, &myfile))
+			if (errno != ENOENT)
+				fprintf(stderr, "Could not obtain the file information for %s (%s)\n", filename, strerror(errno));
 
-	if (stat(filename, &myfile))
-		if (errno != ENOENT)
-			fprintf(stderr, "Could not obtain the file information for %s (%s)\n", filename, strerror(errno));
-
-	/* Save directories, so when all files are removed, we clean up those */
-	if (S_ISDIR(myfile.st_mode)) {
-		ptr->directories = realloc(ptr->directories, (ptr->index+1)*sizeof(char *));
-		ptr->directories[ptr->index] = strdup(filename);
-		ptr->index++;
-	}
-	else
-		if (unlink(filename)) {
-			fprintf(stderr, "Could not remove %s (%s)\n", filename, strerror(errno));
-			return -1;
+		/* Save directories, so when all files are removed, we clean up those */
+		if (S_ISDIR(myfile.st_mode)) {
+			ptr->directories = realloc(ptr->directories, (ptr->index+1)*sizeof(char *));
+			ptr->directories[ptr->index] = strdup(filename);
+			ptr->index++;
 		}
+		else
+			if (unlink(filename)) {
+				fprintf(stderr, "Could not remove %s (%s)\n", filename, strerror(errno));
+				return -1;
+			}
+	}
 
 	return 0;
 }
