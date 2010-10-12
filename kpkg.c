@@ -521,7 +521,7 @@ void say_help(int status)
 			" provides         search for files inside of installed packages\n" 
 			" download         download a package from a mirror" 
 			"\n" 
-			"Kpkg 4.0a by David B. Cortarello (Nomius) <dcortarello@gmail.com>\n\n");
+			"Kpkg 4.0b by David B. Cortarello (Nomius) <dcortarello@gmail.com>\n\n");
 	exit(status);
 }
 
@@ -568,18 +568,20 @@ int main(int argc, char *argv[])
 	else if (!strcmp(argv[1], "download"))
 		while (argv[++i] != NULL)
 			ret |= DownloadPkg(argv[i], NULL);
-	else if (!strcmp(argv[1], "update"))
+	else if (!strcmp(argv[1], "update")) {
 		if (argv[2] == NULL)
 			UpdateMirrorDB(NULL);
 		else
 			while (argv[++i] != NULL)
 				ret |= UpdateMirrorDB(argv[i]);
-	else if (!strcmp(argv[1], "upgrade"))
+	}
+	else if (!strcmp(argv[1], "upgrade")) {
 		if (argv[2] == NULL)
 			UpgradePkg(NULL);
 		else
 			while (argv[++i] != NULL)
 				ret |= UpgradePkg(argv[i]);
+	}
 	free(dbname);
 	free(HOME_ROOT);
 
