@@ -1,7 +1,7 @@
 CC=cc
 STRIP=strip
 CFLAGS=-O2
-LDFLAGS=-lsqlite3 -larchive -lpthread -ldl -llzma -lbz2 -lz -lm -lc -lcurl -lrt -lssl -lcrypto -lidn -lreadline -lncurses
+LDFLAGS=-lsqlite3 -larchive -lpthread -llzma -lbz2 -lz -lm -lc -lcurl -lrt -lssl -lcrypto -lreadline -lncurses -lacl -ldl
 STRIP_FLAGS=--strip-unneeded
 
 all: kpkg.o support.o sqlite_callbacks.o sqlite_backend.o file_operation.o
