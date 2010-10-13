@@ -8,7 +8,7 @@
  * Version: 4.0a
  *
  *
- * Copyright (c) 2005-2008, David B. Cortarello
+ * Copyright (c) 2002-2010, David B. Cortarello
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
