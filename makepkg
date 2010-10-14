@@ -57,8 +57,9 @@ EOF
 CHOWN=n
 STRIP=n
 GZMAN=n
+PKG=""
 
-for param in $*; do
+for param in "${@}"; do
 	case ${param} in
 		'--chown') ;;
 		'-c')
@@ -75,10 +76,21 @@ for param in $*; do
 		'--help') ;;
 		'-h')
 			usage
-			exit
+			exit 0
+		;;
+		*)
+			if [ "`basename "${param}" .tar.xz`" = ${param} ]; then
+				echo "Ooops, wrong package name"
+				exit 2
+			fi
+			PKG=${param}
 		;;
 	esac
 done
+if [ "${PKG}" = "" ]; then
+	echo "No package name given"
+	exit 2
+fi
 
 # Change permissions and owner
 if [ $CHOWN = "y" ]; then
@@ -97,6 +109,6 @@ if [ "$STRIP" = "y" ]; then
 fi
 
 # Make the package
-tar cp . | xz -z --force > ${1}
+tar cp . | xz -z --force > ${PKG}
 
 # EOF
