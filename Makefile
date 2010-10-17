@@ -1,12 +1,14 @@
 CC=cc
 STRIP=strip
-CFLAGS=-O2 -g
-KPKG_LDFLAGS=-lsqlite3 -larchive -lpthread -llzma -lbz2 -lz -lm -lc -lcurl -lrt -lssl -lcrypto -lreadline -lncurses -lacl -ldl
+CFLAGS=-O2 
+#CFLAGS=-gdwarf-2 -g3
+KPKG_LDFLAGS=-static -lsqlite3 -larchive -lpthread -llzma -lbz2 -lz -lm -lc -lcurl -lrt -lssl -lcrypto -lreadline -lncurses -lacl -ldl
+#KPKG_LDFLAGS=-lsqlite3 -larchive -lpthread -llzma -lbz2 -lz -lm -lc -lcurl -lrt -lssl -lcrypto -lreadline -lncurses -lacl -ldl
 LDFLAGS_DBCREATER=-lsqlite3 -lz
 STRIP_FLAGS=--strip-unneeded
 
 all: kpkg.o support.o sqlite_callbacks.o sqlite_backend.o file_operation.o db_creater.o
-	$(CC) $(CFLAGS) -o kpkg kpkg.o sqlite_backend.o sqlite_callbacks.o support.o file_operation.o -static $(KPKG_LDFLAGS)
+	$(CC) $(CFLAGS) -o kpkg kpkg.o sqlite_backend.o sqlite_callbacks.o support.o file_operation.o $(KPKG_LDFLAGS)
 	$(STRIP) $(STRIP_FLAGS) kpkg
 	$(CC) -o db_creater db_creater.o $(LDFLAGS_DBCREATER)
 	$(STRIP) $(STRIP_FLAGS) db_creater
