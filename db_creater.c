@@ -104,6 +104,14 @@ int FillPkgDataFromPackage(PkgData *Data, char *filename)
     return 0;
 }
 
+void usage(st)
+{
+    fprintf(stdout, "Usage: db_creater <DB NAME> <DB LINK> <DB DESC> <LINKS PKG>\n");
+	if (st != -1)
+		exit(st);
+}
+
+
 int main(int argc, char *argv[])
 {
     DIR *dip;
@@ -112,7 +120,8 @@ int main(int argc, char *argv[])
 	sqlite3 *Database;
     PkgData pkg;
 
-	printf("%d\n", argc);
+	if (argc != 5)
+		usage(1);
 
 	char *dbname    = argv[1];
 	char *dblink    = argv[2];
