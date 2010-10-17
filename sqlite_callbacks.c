@@ -117,11 +117,23 @@ int SaveListOfLinks(void *args, int numCols, char **results, char **columnNames)
 	}
 
 	ptr->links = realloc(ptr->links, (ptr->index+1)*sizeof(char *));
-	ptr->links[ptr->index] = strdup(link);
+	if (link != NULL)
+		ptr->links[ptr->index] = strdup(link);
+	else
+		ptr->links[ptr->index] = NULL;
+
 	ptr->comments = realloc(ptr->comments, (ptr->index+1)*sizeof(char *));
-	ptr->comments[ptr->index] = strdup(comment);
+	if (comment != NULL)
+		ptr->comments[ptr->index] = strdup(comment);
+	else
+		ptr->comments[ptr->index] = NULL;
+
 	ptr->crcs = realloc(ptr->crcs, (ptr->index+1)*sizeof(char *));
-	ptr->crcs[ptr->index] = strdup(crc);
+	if (crc != NULL)
+		ptr->crcs[ptr->index] = strdup(crc);
+	else
+		ptr->crcs[ptr->index] = NULL;
+
 	ptr->index++;
 
 	return 0;
@@ -203,7 +215,9 @@ int SearchFilePrintCallback(void *args, int numCols, char **results, char **colu
 		if (!strcmp(columnNames[i], "FILENAME"))
 			filename = results[i];
 	}
-	printf("%s [%s] provided by %s\n", (char *)args, filename, name);
+
+	if (name != NULL && filename != NULL)
+		printf("%s [%s] provided by %s\n", (char *)args, filename, name);
 
 	return 0;
 }
