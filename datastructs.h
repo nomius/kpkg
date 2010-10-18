@@ -69,6 +69,7 @@
 #define PKG_BUILD 3
 #define PKG_EXTENSION 10
 #define PKG_CRC	15
+#define PKG_COMMENT 80
 
 /* Distribution databases */
 /* CREATE TABLE PACKAGES(NAME TEXT KEY ASC, VERSION TEXT, ARCH TEXT, BUILD TEXT, EXTENSION TEXT, TEXT CRC); */
@@ -87,6 +88,7 @@ typedef struct _PkgData {
 	char crc[PKG_CRC+1];
 	int  files_num;
 	char **files;
+	char comment[PKG_COMMENT+1];
 } PkgData;
 
 typedef struct _myDir {

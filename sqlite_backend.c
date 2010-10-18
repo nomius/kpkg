@@ -99,8 +99,11 @@ int RemovePkgFiles(char *name)
  */
 int SearchPkg(char *name)
 {
-	char query[MAX_QUERY];
-	int found = 0;
+	int found = 0, inst = 0, noinst = 1;
+	DIR *dip;
+	struct dirent *dit;
+	char tmp[MAX_QUERY];
+	sqlite3 *TMPDatabase;
 
 	if (sqlite3_open(dbname, &Database)) {
 		fprintf(stderr, "Failed to open database %s (%s)\n", dbname, sqlite3_errmsg(Database));
@@ -108,21 +111,46 @@ int SearchPkg(char *name)
 	}
 
 	if (!strcmp(name, "/all"))
-		snprintf(query, MAX_QUERY, "SELECT NAME, VERSION, ARCH, BUILD, EXTENSION FROM PACKAGES");
+		snprintf(tmp, MAX_QUERY, "SELECT NAME, VERSION, ARCH, BUILD, EXTENSION FROM PACKAGES");
 	else
-		snprintf(query, MAX_QUERY, "SELECT NAME, VERSION, ARCH, BUILD, EXTENSION FROM PACKAGES WHERE NAME LIKE '%%%s%%'", name);
+		snprintf(tmp, MAX_QUERY, "SELECT NAME, VERSION, ARCH, BUILD, EXTENSION FROM PACKAGES WHERE NAME LIKE '%%%s%%'", name);
 
-	if (sqlite3_exec(Database, query, &SearchPkgPrintCallback, &found, NULL)) {
+	if (sqlite3_exec(Database, tmp, &SearchPkgPrintCallback, &found, NULL)) {
 		fprintf(stderr, "Couldn't search for %s (%s)\n", name, sqlite3_errmsg(Database));
 
 		return -1;
 	}
 	sqlite3_close(Database);
 
+	if ((dip = opendir(MIRRORS_DIRECTORY)) == NULL) {
+		fprintf(stderr, "Couldn't open the mirror's database directory %s (%s)\n", MIRRORS_DIRECTORY, strerror(errno));
+		return -1;
+	}
+
+	found = 2;
+	while ((dit = readdir(dip)) != NULL) {
+		if (!strcmp(dit->d_name, ".") || !strcmp(dit->d_name, ".."))
+			continue;
+
+		sprintf(tmp, "%s/%s", MIRRORS_DIRECTORY, dit->d_name);
+		if (sqlite3_open(tmp, &TMPDatabase)) {
+			fprintf(stderr, "Failed to open database %s (%s)\n", dbname, sqlite3_errmsg(Database));
+			closedir(dip);
+			return -1;
+		}
+		snprintf(tmp, MAX_QUERY, "SELECT NAME, VERSION, BUILD, COMMENT FROM MIRRORPKG WHERE NAME LIKE '%%%s%%'", name);
+		if (sqlite3_exec(TMPDatabase, tmp, &SearchPkgPrintCallback, &found, NULL)) {
+			closedir(dip);
+			return -1;
+		}
+		sqlite3_close(TMPDatabase);
+	}
+	closedir(dip);
+
 	if (!found)
 		fprintf(stdout, "Package %s does not exists in database\n", name);
 
-	return found==1?1:0;
+	return (found == 0 && found == 2)?0:1;
 }
 
 

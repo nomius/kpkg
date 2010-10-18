@@ -120,19 +120,19 @@ int SaveListOfLinks(void *args, int numCols, char **results, char **columnNames)
 	if (link != NULL)
 		ptr->links[ptr->index] = strdup(link);
 	else
-		ptr->links[ptr->index] = NULL;
+		ptr->links[ptr->index] = strdup("No link");
 
 	ptr->comments = realloc(ptr->comments, (ptr->index+1)*sizeof(char *));
 	if (comment != NULL)
 		ptr->comments[ptr->index] = strdup(comment);
 	else
-		ptr->comments[ptr->index] = NULL;
+		ptr->comments[ptr->index] = strdup("No comments");
 
 	ptr->crcs = realloc(ptr->crcs, (ptr->index+1)*sizeof(char *));
 	if (crc != NULL)
 		ptr->crcs[ptr->index] = strdup(crc);
 	else
-		ptr->crcs[ptr->index] = NULL;
+		ptr->crcs[ptr->index] = strdup("No CRC");
 
 	ptr->index++;
 
@@ -154,7 +154,16 @@ int SearchPkgPrintCallback(void *args, int numCols, char **results, char **colum
 	char csv[75], *ecsv = NULL;
 	PkgData Data;
 
-	*found = 1;
+	if (*found == 0) {
+		printf("\nInstalled packages:\n\n");
+		*found = 1;
+	}
+
+	if (*found == 2) {
+		printf("\nNo installed packages:\n\n");
+		*found = 3;
+	}
+
 	ecsv = getenv("CSV");
 
 	for (i=0; i<numCols; i++){
@@ -166,28 +175,35 @@ int SearchPkgPrintCallback(void *args, int numCols, char **results, char **colum
 		}
 		if (!strcmp(columnNames[i], "VERSION")) {
 			if (!ecsv)
-				printf(" '-> Version: %s\n", results[i]);
+				printf(" '->  Version: %s\n", results[i]);
 			else
 				strncpy(Data.version, results[i], PKG_VERSION);
 		}
 		if (!strcmp(columnNames[i], "ARCH")) {
 			if (!ecsv)
-				printf(" '->    Arch: %s\n", results[i]);
+				printf(" '->     Arch: %s\n", results[i]);
 			else
 				strncpy(Data.arch, results[i], PKG_ARCH);
 		}
 		if (!strcmp(columnNames[i], "BUILD")) {
 			if (!ecsv)
-				printf(" '->   Build: %s\n", results[i]);
+				printf(" '->    Build: %s\n", results[i]);
 			else
 				strncpy(Data.build, results[i], PKG_BUILD);
 		}
 		if (!strcmp(columnNames[i], "EXTENSION")) {
 			if (!ecsv)
-				printf(" '->     Ext: %s\n", results[i]);
+				printf(" '->      Ext: %s\n", results[i]);
 			else
 				strncpy(Data.extension, results[i], PKG_EXTENSION);
 		}
+		if (!strcmp(columnNames[i], "COMMENT")) {
+			if (!ecsv)
+				printf(" '-> Comments: %s\n", results[i] == NULL ? "No comments" : results[i]);
+			else
+				strncpy(Data.comment, results[i], PKG_COMMENT);
+		}
+
 	}
 	if (ecsv)
 		printf("%s;%s;%s;%s;%s", Data.name, Data.version, Data.arch, Data.build, Data.extension);
