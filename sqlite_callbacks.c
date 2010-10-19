@@ -82,10 +82,11 @@ int RemoveFileCallback(void *args, int numCols, char **results, char **columnNam
 			ptr->index++;
 		}
 		else
-			if (unlink(filename)) {
-				fprintf(stderr, "Could not remove %s (%s)\n", filename, strerror(errno));
-				return -1;
-			}
+			if (unlink(filename))
+				if (errno != ENOENT) {
+					fprintf(stderr, "Could not remove %s (%s)\n", filename, strerror(errno));
+					return -1;
+				}
 	}
 
 	return 0;
@@ -298,8 +299,8 @@ int SavePackageListCallback(void *args, int numCols, char **results, char **colu
 	ListOfPackages *ptr = (ListOfPackages *)args;
 
 	ptr->packages = realloc(ptr->packages, (ptr->index+1)*sizeof(char *));
-	ptr->packages = realloc(ptr->versions, (ptr->index+1)*sizeof(char *));
-	ptr->packages = realloc(ptr->builds, (ptr->index+1)*sizeof(char *));
+	ptr->versions = realloc(ptr->versions, (ptr->index+1)*sizeof(char *));
+	ptr->builds = realloc(ptr->builds, (ptr->index+1)*sizeof(char *));
 	for (i=0; i<numCols; i++) {
 		if (!strcmp(columnNames[i], "NAME"))
 			ptr->packages[ptr->index] = strdup(results[i]);
