@@ -117,7 +117,7 @@ int SearchPkg(char *name)
 
 	if (sqlite3_exec(Database, tmp, &SearchPkgPrintCallback, &found, NULL)) {
 		fprintf(stderr, "Couldn't search for %s (%s)\n", name, sqlite3_errmsg(Database));
-
+		sqlite3_close(Database);
 		return -1;
 	}
 	sqlite3_close(Database);
@@ -140,6 +140,7 @@ int SearchPkg(char *name)
 		}
 		snprintf(tmp, MAX_QUERY, "SELECT NAME, VERSION, BUILD, COMMENT FROM MIRRORPKG WHERE NAME LIKE '%%%s%%'", name);
 		if (sqlite3_exec(TMPDatabase, tmp, &SearchPkgPrintCallback, &found, NULL)) {
+			sqlite3_close(Database);
 			closedir(dip);
 			return -1;
 		}
@@ -172,6 +173,7 @@ int SearchFileInPkgDB(char *filename)
 	snprintf(query, MAX_QUERY, "SELECT NAME, FILENAME FROM FILESPKG WHERE FILENAME LIKE '%%%s%%'", filename);
 	if (sqlite3_exec(Database, query, &SearchFilePrintCallback, filename, NULL)) {
 		fprintf(stderr, "Couldn't search for [%s] in database [%s]\n", filename);
+		sqlite3_close(Database);
 		return -1;
 	}
 	sqlite3_close(Database);
@@ -269,6 +271,7 @@ int SearchLinkForPackage(char *name, ListOfLinks *Links, char *MIRROR)
 		}
 		snprintf(tmp, MAX_QUERY, "SELECT LINK, COMMENT, CRC FROM MIRRORPKG WHERE NAME = '%s'", name);
 		if (sqlite3_exec(TMPDatabase, tmp, &SaveListOfLinks, Links, NULL)) {
+			sqlite3_close(Database);
 			closedir(dip);
 			return -1;
 		}
@@ -307,6 +310,7 @@ int GetDataFromMirrorDatabase(char *db, char *field, char *value)
 	snprintf(query, MAX_QUERY, "SELECT VALUE FROM MDATA WHERE FIELD = '%s'", field);
 	if (sqlite3_exec(TMPDatabase, query, &GetFieldCallback, value, NULL)) {
 		fprintf(stderr, "Couldn't search for %s (%s)\n", field, sqlite3_errmsg(Database));
+		sqlite3_close(TMPDatabase);
 		return -1;
 	}
 	sqlite3_close(TMPDatabase);
@@ -323,8 +327,10 @@ int GetListOfPackages(ListOfPackages *Packages)
 {
 	char query[MAX_QUERY];
 
-	Packages->index = 0;
+	Packages->index    = 0;
 	Packages->packages = NULL;
+	Packages->versions = NULL;
+	Packages->builds   = NULL;
 
 	if (sqlite3_open(dbname, &Database)) {
 		fprintf(stderr, "Failed to open database %s (%s)\n", dbname, sqlite3_errmsg(Database));
@@ -334,6 +340,7 @@ int GetListOfPackages(ListOfPackages *Packages)
 	snprintf(query, MAX_QUERY, "SELECT NAME, VERSION, BUILD FROM PACKAGES");
 	if (sqlite3_exec(Database, query, &SavePackageListCallback, Packages, NULL)) {
 		fprintf(stderr, "Couldn't get the list of installed packages (%s)\n", sqlite3_errmsg(Database));
+		sqlite3_close(Database);
 		return -1;
 	}
 	sqlite3_close(Database);
@@ -365,8 +372,10 @@ int NewVersionAvailable(PkgData *Data, char *MIRROR)
 			return -1;
 		}
 		memset(&TMPData, '\0', sizeof(PkgData));
-		snprintf(tmp, MAX_QUERY, "SELECT NAME, VERSION, BUILD, FROM MIRRORPKG WHERE NAME = '%s'", Data->name);
+		snprintf(tmp, MAX_QUERY, "SELECT NAME, VERSION, BUILD FROM MIRRORPKG WHERE NAME = '%s'", Data->name);
 		if (sqlite3_exec(TMPDatabase, tmp, &ReturnSilentDataFromDB, &TMPData, NULL)) {
+			fprintf(stderr, "Couldn't check if the package is in the mirror's database (%s)\n", sqlite3_errmsg(TMPDatabase));
+			sqlite3_close(TMPDatabase);
 			closedir(dip);
 			return -1;
 		}
@@ -374,9 +383,11 @@ int NewVersionAvailable(PkgData *Data, char *MIRROR)
 		/* Return the mirror if the version or builds found are differents */
 		if (TMPData.version[0] != '\0' && TMPData.build[0] != '\0' && (strcmp(TMPData.version, Data->version) || strcmp(TMPData.build, Data->build))) {
 			strncpy(MIRROR, dit->d_name, NAME_MAX);
+			sqlite3_close(TMPDatabase);
 			closedir(dip);
 			return 1;
 		}
+		sqlite3_close(TMPDatabase);
 	}
 	closedir(dip);
 
