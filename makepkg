@@ -60,33 +60,24 @@ GZMAN=n
 PKG=""
 
 for param in "${@}"; do
-	case ${param} in
-		'--chown') ;;
-		'-c')
-			CHOWN=y
-		;;
-		'--strip') ;;
-		'-s')
-			STRIP=y
-		;;
-		'--gzman') ;;
-		'-z')
-			GZMAN=y
-		;;
-		'--help') ;;
-		'-h')
-			usage
-			exit 0
-		;;
-		*)
-			if [ "`basename "${param}" .tar.xz`" = ${param} ]; then
-				echo "Ooops, wrong package name"
-				exit 2
-			fi
-			PKG=${param}
-		;;
-	esac
+	if [ "${param}" = "--chown" -o "${param}" = "-c" ]; then
+		CHOWN=y
+	elif [ "${param}" = "--strip" -o "${param}" = "-s" ]; then
+		STRIP=y
+	elif [ "${param}" = "--gzman" -o "${param}" = "-z" ]; then
+		GZMAN=y
+	elif [ "${param}" = "--help" -o "${param}" = "-h" ]; then
+		usage
+		exit 0
+	else
+		if [ "`basename "${param}" .tar.xz`" = ${param} ]; then
+			echo "Ooops, wrong package name"
+			exit 2
+		fi
+		PKG=`basename ${param} .xz`
+	fi
 done
+
 if [ "${PKG}" = "" ]; then
 	echo "No package name given"
 	exit 2
@@ -98,6 +89,7 @@ if [ $CHOWN = "y" ]; then
 	find . -type d | xargs chown -v root:root
 fi
 
+# Compress manpages with gzip
 if [ $GZMAN = "y" -a -d usr/man ]; then
 	# Compress manpages with gzip
 	find usr/man -type f | xargs gzip;
@@ -115,6 +107,8 @@ if [ "$STRIP" = "y" ]; then
 fi
 
 # Make the package
-tar cp . | xz -z --force > ${PKG}
+tar cpf ${PKG} .
+xz ${PKG}
 
 # EOF
+
