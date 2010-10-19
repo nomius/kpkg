@@ -68,6 +68,8 @@ int RemovePkg(char *name, int silent)
 	/* Check if it is already installed */
 	memset(&Data, '\0', sizeof(Data));
 	strncpy(Data.name, name, PKG_NAME);
+	Data.name[strlen(name)>PKG_NAME?PKG_NAME:strlen(name)] = '\0';
+
 	if (!ExistsPkg(&Data)) {
 		if (!silent)
 			fprintf(stderr, "Package %s does not exist\n", name);
@@ -110,6 +112,7 @@ int InstallPkg(char *package)
 
 	/* Save locations and initialize the package structure */
 	strncpy(PackageOrig, package, PATH_MAX);
+	PackageOrig[strlen(package)>PATH_MAX?PATH_MAX:strlen(package)] = '\0';
 	init_path = getcwd(malloc(PATH_MAX), PATH_MAX);
 	memset(&Data, '\0', sizeof(PkgData));
 
@@ -447,6 +450,7 @@ int UpgradePkg(char *package)
 		else {
 			/* Ok the package wasn't actually given, but a name */
 			strncpy(Data.name, package, PKG_NAME);
+			Data.name[strlen(package)>PKG_NAME?PKG_NAME:strlen(package)] = '\0';
 			if (!ExistsPkg(&Data)) {
 				fprintf(stdout, "Package %s isn't installed (perhaps you meant install?)\n", package);
 				return 1;
@@ -479,12 +483,13 @@ int UpgradePkg(char *package)
 			return -1;
 		for (i = 0; i < Packages.index; i++) {
 			/* Let's serialize the PkgData structure */
-			strncpy(Data.name, Packages.packages[i], PKG_NAME);
-			strncpy(Data.version, Packages.versions[i], PKG_VERSION);
-			strncpy(Data.build, Packages.builds[i], PKG_BUILD);
+			strcpy(Data.name, Packages.packages[i]);
+			strcpy(Data.version, Packages.versions[i]);
+			strcpy(Data.build, Packages.builds[i]);
 
 			/* Check for new versions in mirrors */
-			if ((ret = NewVersionAvailable(&Data, MIRROR))) {
+			if ((ret = NewVersionAvailable(&Data, MIRROR)) == 1) {
+				printf("Upgrading: [%s] [%s] [%s]\n", Data.name, Data.version, Data.build);
 				setenv("MIRROR", MIRROR, 1);
 				if (DownloadPkg(Data.name, NULL) == -1)
 					continue;
