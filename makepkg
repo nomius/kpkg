@@ -98,8 +98,14 @@ if [ $CHOWN = "y" ]; then
 	find . -type d | xargs chown -v root:root
 fi
 
-# Compress manpages with gzip
-[ $GZMAN = "y" -a -d usr/man ] && ( find usr/man -type f | xargs gzip )
+if [ $GZMAN = "y" -a -d usr/man ]; then
+	# Compress manpages with gzip
+	find usr/man -type f | xargs gzip;
+	for link in `find usr/man -type l`; do
+		orig=`readlink ${link}`
+		ln -sf ${orig} ${link}.gz
+	done
+fi
 
 # Strip binaries, shared libraries and static libraries
 if [ "$STRIP" = "y" ]; then
