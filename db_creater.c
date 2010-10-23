@@ -141,7 +141,7 @@ int main(int argc, char *argv[])
     }
 
 	/* Create the packages table */
-	sprintf(query, "CREATE TABLE MIRRORPKG(NAME TEXT KEY ASC, VERSION TEXT, BUILD TEXT, LINK TEXT, COMMENT TEXT, CRC TEXT)");
+	sprintf(query, "CREATE TABLE MIRRORPKG(NAME TEXT KEY ASC, VERSION TEXT, ARCH TEXT, BUILD TEXT, EXTENSION TEXT, LINK TEXT, CRC TEXT, COMMENT TEXT)");
 	if (sqlite3_exec(Database, query, NULL, NULL, NULL)) {
 		fprintf(stderr, "Couldn't create table MIRRORPKG in %s\n", dbname);
         return -1;
@@ -179,7 +179,8 @@ int main(int argc, char *argv[])
             continue;
         }
 
-        snprintf(query, MAX_QUERY, "INSERT INTO MIRRORPKG (NAME, VERSION, BUILD, LINK, CRC) VALUES ('%s', '%s', '%s', '%s', '%s')", pkg.name, pkg.version, pkg.build, pkg.link, pkg.crc);
+        snprintf(query, MAX_QUERY, "INSERT INTO MIRRORPKG (NAME, VERSION, ARCH, BUILD, EXTENSION, LINK, CRC) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s')", 
+				 pkg.name, pkg.version, pkg.arch, pkg.build, pkg.extension, pkg.link, pkg.crc);
 
 		if (sqlite3_exec(Database, query, NULL, NULL, NULL)) {
 			fprintf(stderr, "Couldn't store the package %s with version %s in %s\n", pkg.name, pkg.version, dbname);
