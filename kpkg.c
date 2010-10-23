@@ -38,6 +38,9 @@
 
 #include "datastructs.h"
 #include "sqlite_backend.h"
+#include "kpkg.h"
+#include "support.h"
+#include "file_operation.h"
 
 /**
  * This function removes the whole package structure from PACKAGES and FILESPKG tables
@@ -159,7 +162,7 @@ int InstallPkg(char *package)
 	}
 
 	/* Check if it is already installed */
-	if (ExistsPkg(Data.name)) {
+	if (ExistsPkg(&Data)) {
 		fprintf(stderr, "Package %s already installed\n", PackageOrig);
 		chdir(init_path);
 		free(init_path);
