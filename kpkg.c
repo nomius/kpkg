@@ -1,11 +1,11 @@
-/* vim: set sw=4 sts=4 : */
+/* vim: set sw=4 sts=4 */
 
 /* 
  * Author David Bruno Cortarello <Nomius>. Redistribute under the terms of the
  * BSD-lite license. Bugs, suggests, nor projects: dcortarello@gmail.com
  *
  * Program: kpkg
- * Version: 4.0a
+ * Version: 4.0
  *
  *
  * Copyright (c) 2002-2010, David B. Cortarello
@@ -35,6 +35,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 
 #include "datastructs.h"
 #include "sqlite_backend.h"
@@ -519,7 +520,7 @@ int UpgradePkg(char *package)
  * This function issue the help message if a wrong parameter is passed
  * @param status An exit status
  */
-void say_help(int status)
+static void say_help(int status)
 {
 	fprintf(stdout, "Usage: kpkg OPTION package[s]\n" 
 			" update           update the mirror's database\n" 
@@ -529,7 +530,7 @@ void say_help(int status)
 			" provides         search for files inside of installed packages\n" 
 			" download         download a package from a mirror" 
 			"\n" 
-			"Kpkg 4.0b by David B. Cortarello (Nomius) <dcortarello@gmail.com>\n\n");
+			"Kpkg 4.0 by David B. Cortarello (Nomius) <dcortarello@gmail.com>\n\n");
 	exit(status);
 }
 

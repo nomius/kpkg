@@ -1,11 +1,11 @@
-/* vim: set sw=4 sts=4 : */
+/* vim: set sw=4 sts=4 */
 
 /*
  * Author David Bruno Cortarello <Nomius>. Redistribute under the terms of the
  * BSD-lite license. Bugs, suggests, nor projects: dcortarello@gmail.com
  *
  * Program: kpkg
- * Version: 4.0a
+ * Version: 4.0
  *
  *
  * Copyright (c) 2002-2010, David B. Cortarello

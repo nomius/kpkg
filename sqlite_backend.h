@@ -1,11 +1,11 @@
-/* vim: set sw=4 sts=4 : */
+/* vim: set sw=4 sts=4 */
 
 /*
  * Author David Bruno Cortarello <Nomius>. Redistribute under the terms of the
  * BSD-lite license. Bugs, suggests, nor projects: dcortarello@gmail.com
  *
  * Program: kpkg
- * Version: 4.0a
+ * Version: 4.0
  *
  *
  * Copyright (c) 2002-2010, David B. Cortarello
@@ -37,6 +37,9 @@
  */
 
 
+#ifndef SQLITE_BACKEND_H
+#define SQLITE_BACKEND_H
+
 int RemovePkgData(char *name);
 int RemovePkgFiles(char *name);
 int SearchPkg(char *name);
@@ -46,3 +49,5 @@ int SearchLinkForPackage(char *name, ListOfLinks *Links, char *MIRROR);
 int GetDataFromMirrorDatabase(char *db, char *field, char *value);
 int GetListOfPackages(ListOfPackages *Packages);
 int NewVersionAvailable(PkgData *Data, char *MIRROR);
+
+#endif

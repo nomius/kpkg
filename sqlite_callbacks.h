@@ -1,11 +1,11 @@
-/* vim: set sw=4 sts=4 : */
+/* vim: set sw=4 sts=4 */
 
 /*
  * Author David Bruno Cortarello <Nomius>. Redistribute under the terms of the
  * BSD-lite license. Bugs, suggests, nor projects: dcortarello@gmail.com
  *
  * Program: kpkg
- * Version: 4.0a
+ * Version: 4.0
  *
  *
  * Copyright (c) 2002-2010, David B. Cortarello
@@ -37,10 +37,15 @@
  */
 
 
+#ifndef SQLITE_CALLBACKS_H
+#define SQLITE_CALLBACKS_H
+
 int RemoveFileCallback(void *args, int numCols, char **results, char **columnNames);
+int SaveListOfLinks(void *args, int numCols, char **results, char **columnNames);
 int SearchPkgPrintCallback(void *args, int numCols, char **results, char **columnNames);
 int SearchFilePrintCallback(void *args, int numCols, char **results, char **columnNames);
 int ReturnSilentDataFromDB(void *args, int numCols, char **results, char **columnNames);
-int SaveListOfLinks(void *args, int numCols, char **results, char **columnNames);
 int GetFieldCallback(void *args, int numCols, char **results, char **columnNames);
 int SavePackageListCallback(void *args, int numCols, char **results, char **columnNames);
+
+#endif
