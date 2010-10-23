@@ -54,7 +54,7 @@ int ExistsPkg(PkgData *Data)
 
 	snprintf(query, MAX_QUERY, "SELECT NAME, VERSION, ARCH, BUILD, EXTENSION FROM PACKAGES WHERE NAME = '%s'", Data->name);
 	if (sqlite3_exec(Database, query, &ReturnSilentDataFromDB, Data, NULL)) {
-		fprintf(stderr, "Couldn't search for [%s] in database [%s]\n", Data->name);
+		fprintf(stderr, "Couldn't search for [%s] in database [%s]\n", Data->name, dbname);
 		return -1;
 	}
 
@@ -74,7 +74,7 @@ int ExistsPkg(PkgData *Data)
  */
 int FillPkgDataFromPackage(PkgData *Data, char *filename)
 {
-    int i = 0, j = 0, k = 0, end = 0;
+    int i = 0, j = 0, end = 0;
 
     i = end = strlen(filename);
 

@@ -100,7 +100,7 @@ int ExtractPackage(const char *filename, PkgData *Data)
  * @param ultnow The acumulated chunk already uploaded when the function was called (this is not used in kpkg)
  * @return This function returns always 0
  */
-int progress_func(void* clientp, double dltotal, double dlnow, double ultotal, double ulnow)
+static int progress_func(void* clientp, double dltotal, double dlnow, double ultotal, double ulnow)
 {
 	int columns, dots, i;
 	double fractiondownloaded;
@@ -131,6 +131,8 @@ int progress_func(void* clientp, double dltotal, double dlnow, double ultotal, d
 
 	printf("] [%dK/%dK]\r", ((int)dlnow)/1024, ((int)dltotal)/1024);
 	fflush(stdout);
+
+	return 0;
 }
 
 /**
@@ -186,7 +188,8 @@ int Download(char *link, char *output)
  */
 int GiveMeHash(char *filename, char *hash)
 {
-	int fd = 0, i = 0;
+	int fd = 0;
+	uInt i = 0;
 	char data[8192];
 	uLong crc;
 
@@ -201,7 +204,7 @@ int GiveMeHash(char *filename, char *hash)
 
 	/* Create the new hash */
 	while((i = read(fd, data, sizeof(data))) > 0)
-		crc = crc32(crc, data, i);
+		crc = crc32(crc, (const Bytef *)data, i);
 	close(fd);
 
 	sprintf(hash, "%lu", crc);

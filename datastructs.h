@@ -47,6 +47,7 @@
 #include <sys/stat.h>
 #include <sys/mman.h>
 #include <dirent.h>
+#include <libgen.h>
 #include <sqlite3.h>
 #include <readline/readline.h>
 #include <readline/history.h>

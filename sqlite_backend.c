@@ -99,7 +99,7 @@ int RemovePkgFiles(char *name)
  */
 int SearchPkg(char *name)
 {
-	int found = 0, inst = 0, noinst = 1;
+	int found = 0;
 	DIR *dip;
 	struct dirent *dit;
 	char tmp[MAX_QUERY];
@@ -172,7 +172,7 @@ int SearchFileInPkgDB(char *filename)
 	/*snprintf(query, MAX_QUERY, "SELECT NAME FROM FILESPKG WHERE FILENAME REGEXP '^%s$|/%s$|^%s/|/%s/'", filename, filename, filename, filename);*/
 	snprintf(query, MAX_QUERY, "SELECT NAME, FILENAME FROM FILESPKG WHERE FILENAME LIKE '%%%s%%'", filename);
 	if (sqlite3_exec(Database, query, &SearchFilePrintCallback, filename, NULL)) {
-		fprintf(stderr, "Couldn't search for [%s] in database [%s]\n", filename);
+		fprintf(stderr, "Couldn't search for [%s] in database [%s]\n", filename, dbname);
 		sqlite3_close(Database);
 		return -1;
 	}

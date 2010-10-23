@@ -50,7 +50,6 @@
 int RemoveFileCallback(void *args, int numCols, char **results, char **columnNames)
 {
 	char remove_query[MAX_QUERY], *name =  NULL, *filename = NULL;
-	int i = 0;
 	myDir *ptr = (myDir *)args;
 	struct stat myfile;
 
@@ -152,7 +151,7 @@ int SearchPkgPrintCallback(void *args, int numCols, char **results, char **colum
 {
 	int i = 0;
 	int *found = (int *)args;
-	char csv[75], *ecsv = NULL;
+	char *ecsv = NULL;
 	PkgData Data;
 
 	if (*found == 0) {
@@ -280,7 +279,7 @@ int GetFieldCallback(void *args, int numCols, char **results, char **columnNames
 {
 	char *value = (char *)args;
 
-	strncpy(args, strdup(results[0]), PATH_MAX);
+	strncpy(value, strdup(results[0]), PATH_MAX);
 
 	return 0;
 }
