@@ -161,7 +161,7 @@ int SearchPkgPrintCallback(void *args, int numCols, char **results, char **colum
 	}
 
 	if (*found == 2) {
-		printf("\nNo installed packages:\n\n");
+		printf("\nPackages in mirror's:\n\n");
 		*found = 3;
 	}
 

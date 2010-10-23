@@ -103,7 +103,7 @@ int RemovePkg(char *name, int silent)
  */
 int InstallPkg(char *package)
 {
-	char *ptr_name = NULL, *renv = NULL, *pkgfullpath = NULL, *init_path = NULL;
+	char *ptr_name = NULL, *pkgfullpath = NULL, *init_path = NULL;
 	char pkgfullpathname[PATH_MAX];
 	char output[PATH_MAX];
 	char PackageOrig[PATH_MAX];
