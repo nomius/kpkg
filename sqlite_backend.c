@@ -138,7 +138,7 @@ int SearchPkg(char *name)
 			closedir(dip);
 			return -1;
 		}
-		snprintf(tmp, MAX_QUERY, "SELECT NAME, VERSION, BUILD, COMMENT FROM MIRRORPKG WHERE NAME LIKE '%%%s%%'", name);
+		snprintf(tmp, MAX_QUERY, "SELECT NAME, VERSION, ARCH, BUILD, EXTENSION, COMMENT FROM MIRRORPKG WHERE NAME LIKE '%%%s%%'", name);
 		if (sqlite3_exec(TMPDatabase, tmp, &SearchPkgPrintCallback, &found, NULL)) {
 			sqlite3_close(Database);
 			closedir(dip);

@@ -106,7 +106,6 @@ int SaveListOfLinks(void *args, int numCols, char **results, char **columnNames)
 	char *link = NULL, *comment = NULL, *crc = NULL;
 	int i = 0;
 
-
 	for (i=0; i<numCols; i++){
 		if (!strcmp(columnNames[i], "LINK"))
 			link = results[i];
@@ -154,59 +153,83 @@ int SearchPkgPrintCallback(void *args, int numCols, char **results, char **colum
 	char *ecsv = NULL;
 	PkgData Data;
 
-	if (*found == 0) {
-		printf("\nInstalled packages:\n\n");
-		*found = 1;
-	}
-
-	if (*found == 2) {
-		printf("\nPackages in mirror's:\n\n");
-		*found = 3;
-	}
-
 	ecsv = getenv("CSV");
 
-	for (i=0; i<numCols; i++){
+	if (!ecsv) {
+		if (*found == 0) {
+			printf("\nInstalled packages:\n\n");
+			*found = 1;
+		}
+
+		if (*found == 2) {
+			printf("\nPackages in mirror's:\n\n");
+			*found = 3;
+		}
+	}
+	else
+		memset(&Data, '\0', sizeof(PkgData));
+
+	for (i=0; i<numCols; i++) {
 		if (!strcmp(columnNames[i], "NAME")) {
 			if (!ecsv)
 				printf("Package name: %s\n", results[i]);
-			else
+			else {
 				strncpy(Data.name, results[i], PKG_NAME);
+				Data.name[strlen(results[i]) >= PKG_NAME?PKG_NAME-1:strlen(results[i])] = '\0';
+			}
 		}
 		if (!strcmp(columnNames[i], "VERSION")) {
 			if (!ecsv)
 				printf(" '->  Version: %s\n", results[i]);
-			else
+			else {
 				strncpy(Data.version, results[i], PKG_VERSION);
+				Data.version[strlen(results[i]) >= PKG_NAME?PKG_NAME-1:strlen(results[i])] = '\0';
+			}
 		}
 		if (!strcmp(columnNames[i], "ARCH")) {
 			if (!ecsv)
 				printf(" '->     Arch: %s\n", results[i]);
-			else
+			else {
 				strncpy(Data.arch, results[i], PKG_ARCH);
+				Data.arch[strlen(results[i]) >= PKG_NAME?PKG_NAME-1:strlen(results[i])] = '\0';
+			}
 		}
 		if (!strcmp(columnNames[i], "BUILD")) {
 			if (!ecsv)
 				printf(" '->    Build: %s\n", results[i]);
-			else
+			else {
 				strncpy(Data.build, results[i], PKG_BUILD);
+				Data.build[strlen(results[i]) >= PKG_NAME?PKG_NAME-1:strlen(results[i])] = '\0';
+			}
 		}
 		if (!strcmp(columnNames[i], "EXTENSION")) {
 			if (!ecsv)
 				printf(" '->      Ext: %s\n", results[i]);
-			else
+			else {
 				strncpy(Data.extension, results[i], PKG_EXTENSION);
+				Data.extension[strlen(results[i]) >= PKG_NAME?PKG_NAME-1:strlen(results[i])] = '\0';
+			}
 		}
 		if (!strcmp(columnNames[i], "COMMENT")) {
 			if (!ecsv)
 				printf(" '-> Comments: %s\n", results[i] == NULL ? "No comments" : results[i]);
-			else
-				strncpy(Data.comment, results[i], PKG_COMMENT);
+			else {
+				if (results[i] == NULL)
+					strcpy(Data.comment, "No comments");
+				else {
+					strncpy(Data.comment, results[i], PKG_COMMENT);
+					Data.comment[strlen(results[i]) >= PKG_NAME?PKG_NAME-1:strlen(results[i])] = '\0';
+				}
+			}
 		}
-
 	}
-	if (ecsv)
-		printf("%s;%s;%s;%s;%s", Data.name, Data.version, Data.arch, Data.build, Data.extension);
+
+	if (ecsv) {
+		if (*found == 0)
+			printf("Installed;%s;%s;%s;%s;%s", Data.name, Data.version, Data.arch, Data.build, Data.extension);
+		else if (*found == 2)
+			printf("Mirrored;%s;%s;%s;%s;%s;%s", Data.name, Data.version, Data.arch, Data.build, Data.extension, Data.comment);
+	}
 	printf("\n");
 
 	return 0;
