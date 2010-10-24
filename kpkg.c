@@ -101,6 +101,48 @@ int RemovePkg(char *name, int silent)
 }
 
 /**
+ * This function install a database in the MIRRORS_DIRECTORY
+ * @param dbpath A database path
+ * @return If no error ocurr, 0 is returned. In case of error, -1 (And an error message is issued).
+ */
+int InstKpkgDB(char *dbpath)
+{
+	int fdi = 0, fdo = 0, i = 0;
+	char tmp[PATH_MAX], tmpbuf[8129];
+	char *origdb = NULL;
+
+	/* Open the user database */
+	if ((fdi = open(dbpath, O_RDONLY)) < 0) {
+		fprintf(stderr, "Can't open %s (%s)\n", dbpath, strerror(errno));
+		return -1;
+	}
+
+	/* Create the destination database */
+	origdb = basename(dbpath);
+	snprintf(tmp, PATH_MAX, "%s/%s", MIRRORS_DIRECTORY, origdb);
+
+	if ((fdo = open(tmp, O_WRONLY|O_TRUNC|O_CREAT, 0644)) < 0) {
+		fprintf(stderr, "Can't open %s for writing (%s)\n", dbpath, strerror(errno));
+		return -1;
+	}
+
+	/* Read and write */
+	while ((i = read(fdi, tmpbuf, PATH_MAX)) > 0)
+		write(fdo, tmpbuf, i);
+
+	close(fdi);
+	close(fdo);
+
+	/* If there was an error, show it and remove the destination database */
+	if (i < 0) {
+		fprintf(stderr, "Can't read from %s (%s)\n", dbpath, strerror(errno));
+		unlink(tmp);
+		return -1;
+	}
+	return 0;
+}
+
+/**
  * This function installs a package calling ExtractPackage to extract it and InsertPkgDB to insert the package in PACKAGES and FILESPKG tables
  * @param name A package name
  * @return If no error ocurr, 0 is returned. If the package is already installed, 1 is returned (And a message is issued). In case of error, -1 (And an error message is issued)
@@ -133,8 +175,8 @@ int InstallPkg(char *package)
 		close(fd);
 
 	/* Get the full pathname instead of its relative name */
-	ptr_name = (char *)basename(package);
-	pkgfullpath = (char *)dirname(package);
+	ptr_name = basename(package);
+	pkgfullpath = dirname(package);
 	chdir(pkgfullpath);
 	pkgfullpath = getcwd(malloc(PATH_MAX), PATH_MAX);
 	snprintf(pkgfullpathname, PATH_MAX, "%s/%s", pkgfullpath, ptr_name);
@@ -343,7 +385,7 @@ int UpdateMirrorDB(char *db)
 	if (db) {
 
 		/* Get the path */
-		snprintf(dbpath, PATH_MAX, "%s/%s.db", MIRRORS_DIRECTORY, db);
+		snprintf(dbpath, PATH_MAX, "%s/%s.kdb", MIRRORS_DIRECTORY, db);
 		if ((fd = open(dbpath, O_RDONLY)) < 0) {
 			fprintf(stdout, "Database %s doesn't exists\n", db);
 			return 1;
@@ -522,14 +564,15 @@ int UpgradePkg(char *package)
  */
 static void say_help(int status)
 {
-	fprintf(stdout, "Usage: kpkg OPTION package[s]\n" 
-			" update           update the mirror's database\n" 
+	fprintf(stdout, "Usage: kpkg OPTION package[s]\n"
+			" update           update the mirror's database\n"
 			" install          install local package or from a mirror\n"
-			" remove           remove a package from the system\n" 
-			" search           search for a package in the database\n" 
-			" provides         search for files inside of installed packages\n" 
-			" download         download a package from a mirror" 
-			"\n" 
+			" remove           remove a package from the system\n"
+			" search           search for a package in the database\n"
+			" provides         search for files inside of installed packages\n"
+			" download         download a package from a mirror\n"
+			" instkdb          install a database in the mirror's path"
+			"\n"
 			"Kpkg 4.0 by David B. Cortarello (Nomius) <dcortarello@gmail.com>\n\n");
 	exit(status);
 }
@@ -542,14 +585,22 @@ int main(int argc, char *argv[])
 
 	/* Basic environment variables */
 	if (!(renv = getenv("KPKG_DB_HOME")))
-		dbname = strdup("/var/packages/installed.db");
+		dbname = strdup("/var/packages/installed.kdb");
 	else
 		dbname = strdup(renv);
 
-	if (!(renv = getenv("ROOT")))
+	if (!(renv = getenv("ROOT"))) {
 		HOME_ROOT = strdup("/");
-	else
+		MIRRORS_DIRECTORY = strdup("/var/packages/mirrors");
+		PACKAGES_DIRECTORY = strdup("/var/packages/downloads");
+	}
+	else {
 		HOME_ROOT = strdup(renv);
+		MIRRORS_DIRECTORY = malloc(sizeof(char)*PATH_MAX);
+		PACKAGES_DIRECTORY = malloc(sizeof(char)*PATH_MAX);
+		snprintf(MIRRORS_DIRECTORY, PATH_MAX, "%s/%s", HOME_ROOT, "/var/packages/mirrors");
+		snprintf(PACKAGES_DIRECTORY, PATH_MAX, "%s/%s", HOME_ROOT, "/var/packages/downloads");
+	}
 
 	/* Commands parsing */
 	if (argc == 1) {
@@ -577,6 +628,9 @@ int main(int argc, char *argv[])
 	else if (!strcmp(argv[1], "download"))
 		while (argv[++i] != NULL)
 			ret |= DownloadPkg(argv[i], NULL);
+	else if (!strcmp(argv[1], "instkdb"))
+		while (argv[++i] != NULL)
+			ret |= InstKpkgDB(argv[i]);
 	else if (!strcmp(argv[1], "update")) {
 		if (argv[2] == NULL)
 			UpdateMirrorDB(NULL);
@@ -593,6 +647,8 @@ int main(int argc, char *argv[])
 	}
 	free(dbname);
 	free(HOME_ROOT);
+	free(MIRRORS_DIRECTORY);
+	free(PACKAGES_DIRECTORY);
 
 	return ret;
 }
