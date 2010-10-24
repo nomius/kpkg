@@ -1,0 +1,138 @@
+.\" -*- nroff -*-
+.ds g \" empty
+.ds G \" empty
+.\" Like TP, but if specified indent is more than half
+.\" the current line-length - indent, use the default indent.
+.de Tp
+.ie \\n(.$=0:((0\\$1)*2u>(\\n(.lu-\\n(.iu)) .TP
+.el .TP "\\$1"
+..
+.TH KPKG 8 "October 2010" "Kwort Linux"
+.SH NAME
+kpkg \- Kwort package maintenance tool.
+.SH SYNOPSIS
+.B kpkg <options> [PACKAGE|FILE ...]
+
+.SH DESCRIPTION
+
+.B kpkg
+is Kworts package tool to manage packages.  
+It can install packages from a single package file or from any mirror you choose. 
+It has several options, including the basics, installing and removing, and more advanced features. 
+
+.SH OPTIONS
+.TP
+.B update [DATABASES...]
+This option updates a package database from all mirrors installed or from the mirror you chose from.
+
+Example:
+
+kpkg update 
+
+kpkg update europa
+.TP
+.B install PACKAGE1 [PACKAGE2 ...]
+This option allows you to install a package from a local place or from the chosen mirrors.
+
+Examples:
+
+kpkg install openoffice
+
+kpkg install wbar openoffice
+
+kpkg install /home/user/openoffice-2.0-i486-1.tar.xz
+
+kpkg install /var/packages/xapps/xfmedia-0.9.1-i486-1.tar.gz /home/user/openoffice-2.0-i486-1.tar.xz 
+
+.TP
+.B remove PACKAGE1 [PACKAGE2 ...]
+Use this option to remove installed packages.
+
+Examples:
+
+kpkg remove openoffice
+
+kpkg remove xfmedia openoffice
+.PP
+ATTENTION: This option does not remove packages installed from source. Only packages installed with kpkg. 
+
+.TP
+.B download PACKAGE1 [PACKAGE2 ...]
+With this option you download packages from the mirror but don't install them. The downloaded packages go to /var/packages/downloads
+
+Examples:
+
+kpkg download openoffice
+
+kpkg download xfmedia openoffice
+
+.TP
+.B search
+This option only search a package in the database, it doesn't install or remove any package. It doesn't modify the database at all. If you want to know all packages in the database, you can use "/all" as package name.
+
+Examples:
+
+kpkg search en
+
+kpkg search gnome-mplayer
+
+kpkg search /all
+
+.TP
+.B provides FILE
+This option allows you to know which package installed by kpkg is providing a given file.
+
+Examples:
+
+kpkg provides ls
+
+.TP
+.B upgrade
+This option upgrades the whole system or a given package name from the mirror's.
+
+Examples:
+
+kpkg upgrade
+
+kpkg upgrade gnome-mplayer
+
+.SH ENVIRONMENT
+.TP
+.B ROOT
+This option is used to set a path to an installation. Leave it empty to install in the root (/). Accepted value is a full directory name. 
+
+Examples:
+
+ROOT=/home/nomius kpkg install openoffice
+
+.PP
+ATTENTION: Note that if you change this variable you might provably change also KPKG_DB_HOME, to point the installed packages database to $ROOT/var/packages/installed.kdb.
+.TP
+.B KPKG_DB_HOME
+This option is used to set a path where the database is. You can work with this with several database using them completely separated. Leave it empty to use the default database path (/var/packages/installed.kdb).
+
+Examples:
+
+KPKG_DB_HOME=/home/nomius/installed.kdb kpkg install openoffice
+
+.TP
+.B CSV
+Using the search command willl produce a human readable form list of installed packages, setting this variable to "yes" will make it look like a csv list. This option is useful for frontends where the output of kpkg must be piped to another program.
+
+Examples:
+
+CSV=yes kpkg install search /all
+
+.TP
+.B MIRROR
+If you have a package on several mirrors and you don't want to be prompted when installing, you can set this variable the the mirror name. The mirror name is the name of the database without its extension.
+
+Examples:
+
+MIRROR=europa kpkg install gnome-mplayer
+
+
+.SH AUTHOR
+David B. Cortarello <dcortarello@gmail.com>
+.SH "SEE ALSO"
+.BR makepkg(8)
