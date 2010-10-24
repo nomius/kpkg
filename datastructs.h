@@ -61,9 +61,6 @@
 
 #define MAX_QUERY (PATH_MAX+40+80)
 
-#define MIRRORS_DIRECTORY "/var/packages/mirrors"
-#define PACKAGES_DIRECTORY "/var/packages/downloads"
-
 #define PKG_NAME 40
 #define PKG_VERSION 10
 #define PKG_ARCH 10
@@ -114,4 +111,6 @@ typedef struct _ListOfLinks {
 char *dbname;
 sqlite3 *Database;
 char *HOME_ROOT;
+char *MIRRORS_DIRECTORY;
+char *PACKAGES_DIRECTORY;
 
