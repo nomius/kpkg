@@ -95,7 +95,8 @@ if [ $GZMAN = "y" -a -d usr/man ]; then
 	find usr/man -type f | xargs gzip;
 	for link in `find usr/man -type l`; do
 		orig=`readlink ${link}`
-		ln -sf ${orig} ${link}.gz
+		rm ${link}
+		ln -sf ${orig}.gz ${link}.gz
 	done
 fi
 
