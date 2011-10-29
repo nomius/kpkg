@@ -1,8 +1,8 @@
 CC=cc
 STRIP=strip
 CFLAGS=-O2 
+KPKG_LDFLAGS=-static -lsqlite3 -larchive -lpthread -llzma -lbz2 -lz -lm -lc -lcurl -lrt -lssl -lcrypto -lreadline -lncurses -lacl -ldl -lpthread
 #CFLAGS=-gdwarf-2 -g3
-KPKG_LDFLAGS=-static -lsqlite3 -larchive -lpthread -llzma -lbz2 -lz -lm -lc -lcurl -lrt -lssl -lcrypto -lreadline -lncurses -lacl -ldl
 #KPKG_LDFLAGS=-lsqlite3 -larchive -lpthread -llzma -lbz2 -lz -lm -lc -lcurl -lrt -lssl -lcrypto -lreadline -lncurses -lacl -ldl
 LDFLAGS_DBCREATER=-lsqlite3 -lz
 STRIP_FLAGS=--strip-unneeded
