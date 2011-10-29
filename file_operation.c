@@ -50,6 +50,7 @@ int ExtractPackage(const char *filename, PkgData *Data)
 	struct archive *a;
 	struct archive_entry *entry;
 	int flags = 0;
+	char cmd[PATH_MAX];
 
 	/* Set extraction permissions to keep with those in the package */
 	flags |= ARCHIVE_EXTRACT_PERM;
@@ -88,6 +89,15 @@ int ExtractPackage(const char *filename, PkgData *Data)
 	/* Clean up */
 	archive_read_close(a);
 	archive_read_finish(a);
+
+	/* Check for a install/doinst.sh */
+	if ((flags = open(DOINST_FILE, O_RDONLY)) >= 0) {
+		chmod(DOINST_FILE, 0700);
+		sprintf(cmd, "./%s", DOINST_FILE);
+		system(cmd);
+		close(flags);
+	}
+
 	return 0;
 }
 
