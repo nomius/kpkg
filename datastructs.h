@@ -52,7 +52,6 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 #include <curl/curl.h>
-#include <curl/types.h>
 #include <curl/easy.h>
 #include <zlib.h>
 #include <archive.h>
