@@ -165,7 +165,7 @@ int InstallPkg(char *package)
 	/* Does it fisically exist? */
 	if ((fd = open(package, O_RDONLY)) < 0) {
 		/* Ok, the package doesn't exists, let's go for a mirror */
-		if (DownloadPkg(package, output) == -1) {
+		if (DownloadPkg(package, output) != 0) {
 			free(init_path);
 			return -1;
 		}
