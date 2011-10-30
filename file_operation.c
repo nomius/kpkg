@@ -50,7 +50,7 @@ int ExtractPackage(const char *filename, PkgData *Data)
 	struct archive *a;
 	struct archive_entry *entry;
 	int flags = 0;
-	char cmd[PATH_MAX];
+	char *mfile = NULL;
 
 	/* Set extraction permissions to keep with those in the package */
 	flags |= ARCHIVE_EXTRACT_PERM;
@@ -69,7 +69,7 @@ int ExtractPackage(const char *filename, PkgData *Data)
 		fprintf(stderr, "Can't open file %s (%s)\n", filename, archive_error_string(a));
 		return -1;
 	}
-	for (Data->files_num = 0, Data->files = NULL;archive_read_next_header(a, &entry) == ARCHIVE_OK; Data->files_num++) {
+	for (Data->files_num = 0, Data->files = NULL; archive_read_next_header(a, &entry) == ARCHIVE_OK; Data->files_num++) {
 		/* Uncompress the file */
 		if (archive_read_extract(a, entry, flags)) {
 			fprintf(stderr, "Could not uncompress %s (%s)\n", archive_entry_pathname(entry), archive_error_string(a));
@@ -79,26 +79,55 @@ int ExtractPackage(const char *filename, PkgData *Data)
 		/* Save the file to push it in the database */
 		Data->files =  realloc(Data->files, (Data->files_num+1)*sizeof(char *));
 		/* The next code is to remove the starting slash or dot slash */
-		if (archive_entry_pathname(entry)[0] == '/')
-			Data->files[Data->files_num] = strdup(archive_entry_pathname(entry)+1);
-		else if (archive_entry_pathname(entry)[0] == '.' && archive_entry_pathname(entry)[1] == '/')
-			Data->files[Data->files_num] = strdup(archive_entry_pathname(entry)+2);
-		else
-			Data->files[Data->files_num] = strdup(archive_entry_pathname(entry));
+		mfile = (char *)archive_entry_pathname(entry);
+		if (*mfile == '/')
+			mfile += 1;
+		else if (*mfile == '.' && *(mfile + 1) == '/')
+			mfile += 2;
+
+		/* Avoid install/doinst.sh and install/README */
+		if (strcmp(mfile, DOINST_FILE) && strcmp(mfile, README_FILE))
+			Data->files[Data->files_num] = strdup(mfile);
 	}
 	/* Clean up */
 	archive_read_close(a);
 	archive_read_finish(a);
 
+	return 0;
+}
+
+/**
+ * This function do all the post installation extra stuff, like executing install/doinst.sh and showing a readme file (install/README) if needed.
+ */
+void PostInstall(void)
+{
+	char cmd[PATH_MAX];
+	int fd = 0;
+	FILE *readme = NULL;
+
 	/* Check for a install/doinst.sh */
-	if ((flags = open(DOINST_FILE, O_RDONLY)) >= 0) {
+	if ((fd = open(DOINST_FILE, O_RDONLY)) >= 0) {
 		chmod(DOINST_FILE, 0700);
 		sprintf(cmd, "./%s", DOINST_FILE);
+		close(fd);
 		system(cmd);
-		close(flags);
 	}
 
-	return 0;
+	/* Check for a install/README */
+	if (!noreadme) {
+		if ((readme = fopen(README_FILE, "r")) != NULL) {
+			while (fgets(cmd, sizeof(cmd)-1, readme) != NULL)
+				puts(cmd);
+			fclose(readme);
+		}
+		else
+			noreadme = 1;
+	}
+
+	unlink(DOINST_FILE);
+	unlink(README_FILE);
+	rmdir(INSTALL);
+	errno = 0;
 }
 
 /**
