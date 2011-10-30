@@ -36,13 +36,13 @@ This option allows you to install a package from a local place or from the chose
 
 Examples:
 
-kpkg install openoffice
+kpkg install irssi
 
-kpkg install wbar openoffice
+kpkg install wbar irssi
 
 kpkg install /home/user/openoffice-2.0-i486-1.tar.xz
 
-kpkg install /var/packages/xapps/xfmedia-0.9.1-i486-1.tar.gz /home/user/openoffice-2.0-i486-1.tar.xz 
+kpkg install /var/packages/downloads/xfmedia-0.9.1-i486-1.tar.gz /home/user/openoffice-2.0-i486-1.tar.xz 
 
 .TP
 .B remove PACKAGE1 [PACKAGE2 ...]
@@ -74,7 +74,7 @@ Examples:
 
 kpkg search en
 
-kpkg search gnome-mplayer
+kpkg search irssi
 
 kpkg search /all
 
@@ -94,7 +94,18 @@ Examples:
 
 kpkg upgrade
 
-kpkg upgrade gnome-mplayer
+kpkg upgrade irssi
+
+.TP
+.B instkdb [KDBFILE / URL TO KDBFILE]
+Use this option to install a Kwort compatible kdb file. You can pass a kdb file or a web link so the database would be downloaded and saved it in the right place.
+
+Examples:
+
+kpkg instkdb europa.kdb
+
+kpkg instkdb http://europa.fapyd.unr.edu.ar/pub/kwort/3.2/europa.kdb
+
 
 .SH ENVIRONMENT
 .TP
@@ -106,7 +117,7 @@ Examples:
 ROOT=/home/nomius kpkg install openoffice
 
 .PP
-ATTENTION: Note that if you change this variable you might provably change also KPKG_DB_HOME, to point the installed packages database to $ROOT/var/packages/installed.kdb.
+ATTENTION: Note that if you change this variable you might probably want to change also KPKG_DB_HOME, to point the installed packages database to $ROOT/var/packages/installed.kdb.
 .TP
 .B KPKG_DB_HOME
 This option is used to set a path where the database is. You can work with this with several database using them completely separated. Leave it empty to use the default database path (/var/packages/installed.kdb).
@@ -129,7 +140,7 @@ If you have a package on several mirrors and you don't want to be prompted when 
 
 Examples:
 
-MIRROR=europa kpkg install gnome-mplayer
+MIRROR=europa kpkg install irssi
 
 .TP
 .B NOREADME
