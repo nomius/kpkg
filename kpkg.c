@@ -5,7 +5,7 @@
  * BSD-lite license. Bugs, suggests, nor projects: dcortarello@gmail.com
  *
  * Program: kpkg
- * Version: 4.0
+ * Version: svn
  *
  *
  * Copyright (c) 2002-2010, David B. Cortarello
@@ -42,6 +42,7 @@
 #include "kpkg.h"
 #include "support.h"
 #include "file_operation.h"
+#include "version.h"
 
 /**
  * This function removes the whole package structure from PACKAGES and FILESPKG tables
@@ -584,7 +585,7 @@ static void say_help(int status)
 			" download         download a package from a mirror\n"
 			" instkdb          install a database in the mirror's path"
 			"\n"
-			"Kpkg 4.0 by David B. Cortarello (Nomius) <dcortarello@gmail.com>\n\n");
+			"Kpkg %d by David B. Cortarello (Nomius) <dcortarello@gmail.com>\n\n", VERSION);
 	exit(status);
 }
 

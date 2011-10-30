@@ -25,11 +25,14 @@ sqlite_callbacks.o: sqlite_callbacks.c datastructs.h sqlite_callbacks.h
 support.o: support.c datastructs.h sqlite_callbacks.h
 	$(CC) $(CFLAGS) -c support.c -o support.o
 
-kpkg.o: sqlite_backend.h datastructs.h sqlite_callbacks.h
+kpkg.o: sqlite_backend.h datastructs.h sqlite_callbacks.h version
 	$(CC) $(CFLAGS) -c kpkg.c -o kpkg.o
 
 db_creater.o: db_creater.c
 	$(CC) -c db_creater.c -o db_creater.o
+
+version:
+	svn up | awk -F '[ .]' '{print "#define VERSION " $$3 }' > version.h
 
 clean:
 	rm -f file_operation.o sqlite_backend.o sqlite_callbacks.o support.o kpkg.o kpkg db_creater
