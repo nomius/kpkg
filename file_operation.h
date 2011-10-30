@@ -41,6 +41,7 @@
 #define FILE_OPERATION_H
 
 int ExtractPackage(const char *filename, PkgData *Data);
+void PostInstall(void);
 int Download(char *link, char *output);
 int GiveMeHash(char *filename, char *hash);
 

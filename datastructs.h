@@ -68,7 +68,9 @@
 #define PKG_CRC	15
 #define PKG_COMMENT 80
 
-#define DOINST_FILE "install/doinst.sh"
+#define INSTALL "install"
+#define DOINST_FILE (INSTALL "/doinst.sh")
+#define README_FILE (INSTALL "/README")
 
 /* Distribution databases */
 /* CREATE TABLE PACKAGES(NAME TEXT KEY ASC, VERSION TEXT, ARCH TEXT, BUILD TEXT, EXTENSION TEXT, TEXT CRC); */
@@ -114,4 +116,5 @@ sqlite3 *Database;
 char *HOME_ROOT;
 char *MIRRORS_DIRECTORY;
 char *PACKAGES_DIRECTORY;
+int noreadme;
 
