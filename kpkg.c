@@ -111,15 +111,23 @@ int InstKpkgDB(char *dbpath)
 	char tmp[PATH_MAX], tmpbuf[8129];
 	char *origdb = NULL;
 
-	/* Open the user database */
-	if ((fdi = open(dbpath, O_RDONLY)) < 0) {
-		fprintf(stderr, "Can't open %s (%s)\n", dbpath, strerror(errno));
-		return -1;
-	}
-
 	/* Create the destination database */
 	origdb = basename(dbpath);
 	snprintf(tmp, PATH_MAX, "%s/%s", MIRRORS_DIRECTORY, origdb);
+
+	/* Open the user database */
+	if ((fdi = open(dbpath, O_RDONLY)) < 0) {
+		if (errno == ENOENT) {
+			if (Download(dbpath, tmp) == -1)
+				return -1;
+			else
+				return 0;
+		}
+		else {
+			fprintf(stderr, "Can't open %s (%s)\n", dbpath, strerror(errno));
+			return -1;
+		}
+	}
 
 	if ((fdo = open(tmp, O_WRONLY|O_TRUNC|O_CREAT, 0644)) < 0) {
 		fprintf(stderr, "Can't open %s for writing (%s)\n", dbpath, strerror(errno));
@@ -143,13 +151,13 @@ int InstKpkgDB(char *dbpath)
 }
 
 /**
- * This function installs a package calling ExtractPackage to extract it and InsertPkgDB to insert the package in PACKAGES and FILESPKG tables
+ * This function installs a package by calling ExtractPackage to extract it and InsertPkgDB to insert the package in PACKAGES and FILESPKG tables
  * @param name A package name
  * @return If no error ocurr, 0 is returned. If the package is already installed, 1 is returned (And a message is issued). In case of error, -1 (And an error message is issued)
  */
 int InstallPkg(char *package)
 {
-	char *ptr_name = NULL, *pkgfullpath = NULL, *init_path = NULL;
+	char *ptr_name = NULL, *pkgfullpath = NULL, *init_path = NULL, *input = NULL;
 	char pkgfullpathname[PATH_MAX];
 	char output[PATH_MAX];
 	char PackageOrig[PATH_MAX];
@@ -225,6 +233,7 @@ int InstallPkg(char *package)
 		free(init_path);
 		return -1;
 	}
+	PostInstall();
 
 	/* Register the package in the database */
 	InsertPkgDB(&Data);
@@ -232,6 +241,8 @@ int InstallPkg(char *package)
 	/* Clean everything up */
 	sqlite3_close(Database);
 	chdir(init_path);
+	if (!noreadme)
+		input = readline("Press intro to continue");
 	fprintf(stdout, "Package %s installed\n", PackageOrig);
 	return 0;
 }
@@ -600,6 +611,15 @@ int main(int argc, char *argv[])
 		PACKAGES_DIRECTORY = malloc(sizeof(char)*PATH_MAX);
 		snprintf(MIRRORS_DIRECTORY, PATH_MAX, "%s/%s", HOME_ROOT, "/var/packages/mirrors");
 		snprintf(PACKAGES_DIRECTORY, PATH_MAX, "%s/%s", HOME_ROOT, "/var/packages/downloads");
+	}
+
+	if (!(renv = getenv("NOREADME")))
+		noreadme = 0;
+	else {
+		if (*renv != '\0')
+			noreadme = 1;
+		else
+			noreadme = 0;
 	}
 
 	/* Commands parsing */
