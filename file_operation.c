@@ -185,10 +185,14 @@ int Download(char *link, char *output)
 	CURLcode res;
 	CURL *curl = NULL;
 	FILE *out_file = NULL;
+	char *output_tmp = NULL;
+
+	output_tmp = malloc(sizeof(char) * strlen(output) + 5);
+	sprintf(output_tmp, "%s_TMP", output);
 
 	/* Open the destination output */
-	if (!(out_file = fopen(output, "w"))) {
-	    fprintf(stderr, "Can't create the output file %s (%s)\n", output, strerror(errno));
+	if (!(out_file = fopen(output_tmp, "w"))) {
+		fprintf(stderr, "Can't create the output file %s (%s)\n", output_tmp, strerror(errno));
 		return -1;
 	}
 
@@ -216,6 +220,12 @@ int Download(char *link, char *output)
 	}
 	printf("\n\nDone\n");
 	fclose(out_file);
+	
+	if (rename(output_tmp, output)) {
+		fprintf(stderr, "Can't rename %s to %s (%s)\n", output_tmp, output, strerror(errno));
+		return -1;
+	}
+
 	return 0;
 }
 
