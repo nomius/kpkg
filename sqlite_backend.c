@@ -189,14 +189,15 @@ int SearchFileInPkgDB(char *filename)
  */
 static int InsertPkgData(PkgData *Data)
 {
-    char query[MAX_QUERY];
+	char query[MAX_QUERY];
 
-    snprintf(query, MAX_QUERY, "INSERT INTO PACKAGES (NAME, VERSION, ARCH, BUILD, EXTENSION, CRC) VALUES ('%s', '%s', '%s', '%s', '%s', '%s')", Data->name, Data->version, Data->arch, Data->build, Data->extension, Data->crc);
-    if (sqlite3_exec(Database, query, NULL, NULL, NULL)) {
-        fprintf(stderr, "Couldn't store the package %s with version %s in %s\n", Data->name, Data->version, dbname);
-        return -1;
-    }
-    return 0;
+	snprintf(query, MAX_QUERY, "INSERT INTO PACKAGES (NAME, VERSION, ARCH, BUILD, EXTENSION, CRC) VALUES ('%s', '%s', '%s', '%s', '%s', '%s')", Data->name, Data->version, Data->arch, Data->build, Data->extension, Data->crc);
+	if (sqlite3_exec(Database, query, NULL, NULL, NULL)) {
+		fprintf(stderr, "Couldn't store the package %s with version %s in %s\n", Data->name, Data->version, dbname);
+		return -1;
+	}
+
+	return 0;
 }
 
 
@@ -207,16 +208,26 @@ static int InsertPkgData(PkgData *Data)
  * @param crc A checksum for the file (Now it's not being used)
  * @return If no error ocurr, 0 is returned, otherwise -1 (And an error message is issued by stderr).
  */
-static int InsertPkgFile(char *name, char *filename, char *crc)
+static int InsertPkgFile(char *name, char **filenames, char *crc, int fileCount)
 {
-    char query[MAX_QUERY];
+	char query[MAX_QUERY];
+	int i = 0;
 
-    snprintf(query, MAX_QUERY, "INSERT INTO FILESPKG (NAME, FILENAME, CRC) VALUES ('%s', '%s', '%s')", name, filename, crc!=NULL?crc:NULL);
-    if (sqlite3_exec(Database, query, NULL, NULL, NULL)) {
-        fprintf(stderr, "Couldn't store the package %s with version %s in %s\n", name, filename, dbname);
-        return -1;
-    }
-    return 0;
+	sqlite3_exec(Database, "BEGIN TRANSACTION", NULL, NULL, NULL);
+	
+	for (i = 0; i < fileCount; i++) {
+		if (strcmp(filenames[i], "") != 0) {
+			snprintf(query, MAX_QUERY, "INSERT INTO FILESPKG (NAME, FILENAME, CRC) VALUES ('%s', '%s', '%s')", name, filenames[i], crc);
+			if (sqlite3_exec(Database, query, NULL, NULL, NULL)) {
+				fprintf(stderr, "Couldn't store the files of the package %s (%s)\n", name, sqlite3_errmsg(Database));
+				return -1;
+			}
+		}
+	}
+
+	sqlite3_exec(Database, "COMMIT TRANSACTION", NULL, NULL, NULL);
+	
+	return 0;
 }
 
 
@@ -227,17 +238,13 @@ static int InsertPkgFile(char *name, char *filename, char *crc)
  * */
 int InsertPkgDB(PkgData *Data)
 {
-    int i = 0;
-    int ret = 0;
+	if (InsertPkgData(Data) == -1)
+		return -1;
 
-    if (InsertPkgData(Data) == -1)
-        return -1;
+	if (InsertPkgFile(Data->name, Data->files, NULL, Data->files_num) == -1)
+		return -1;
 
-    for(i=0;i<Data->files_num;i++)
-        if (InsertPkgFile(Data->name, Data->files[i], NULL) != -1)
-            ret++;
-
-    return Data->files_num - ret;
+	return 0;
 }
 
 
