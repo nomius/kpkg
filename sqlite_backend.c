@@ -210,18 +210,39 @@ static int InsertPkgData(PkgData *Data)
  */
 static int InsertPkgFile(char *name, char **filenames, char *crc, int fileCount)
 {
-	char query[MAX_QUERY];
 	int i = 0;
+	sqlite3_stmt *stmt;
 
 	sqlite3_exec(Database, "BEGIN TRANSACTION", NULL, NULL, NULL);
-	
+
 	for (i = 0; i < fileCount; i++) {
-		if (strcmp(filenames[i], "") != 0) {
-			snprintf(query, MAX_QUERY, "INSERT INTO FILESPKG (NAME, FILENAME, CRC) VALUES ('%s', '%s', '%s')", name, filenames[i], crc);
-			if (sqlite3_exec(Database, query, NULL, NULL, NULL)) {
-				fprintf(stderr, "Couldn't store the files of the package %s (%s)\n", name, sqlite3_errmsg(Database));
-				return -1;
-			}
+		if (strcmp(filenames[i], "") == 0) {
+			continue;
+		}
+
+		if (sqlite3_prepare(Database, "INSERT INTO FILESPKG (NAME, FILENAME, CRC) VALUES (?,?,?)", -1, &stmt, 0) != SQLITE_OK) {
+			fprintf(stderr, "Could not prepare statement");
+			return -1;
+		}
+		
+		if (sqlite3_bind_text(stmt, 1, name, -1, SQLITE_STATIC) != SQLITE_OK) {
+			fprintf(stderr, "Could not bind first parameter");
+			return -1;
+		}
+
+		if (sqlite3_bind_text(stmt, 2, filenames[i], -1, SQLITE_STATIC) != SQLITE_OK) {
+			fprintf(stderr, "Could not bind second parameter");
+			return -1;
+		}
+
+		if (sqlite3_bind_text(stmt, 3, crc, -1, SQLITE_STATIC) != SQLITE_OK) {
+			fprintf(stderr, "Could not bind third parameter");
+			return -1;
+		}
+
+		if (sqlite3_step(stmt) != SQLITE_DONE) {
+			fprintf(stderr, "Could not execute prepared statement");
+			sqlite3_reset(stmt);
 		}
 	}
 
