@@ -69,15 +69,13 @@ int ExtractPackage(const char *filename, PkgData *Data)
 		fprintf(stderr, "Can't open file %s (%s)\n", filename, archive_error_string(a));
 		return -1;
 	}
-	for (Data->files_num = 0, Data->files = NULL; archive_read_next_header(a, &entry) == ARCHIVE_OK; Data->files_num++) {
+	for (Data->files_num = 0, Data->files = NULL; archive_read_next_header(a, &entry) == ARCHIVE_OK;) {
 		/* Uncompress the file */
 		if (archive_read_extract(a, entry, flags)) {
 			fprintf(stderr, "Could not uncompress %s (%s)\n", archive_entry_pathname(entry), archive_error_string(a));
 			continue;
 		}
 
-		/* Save the file to push it in the database */
-		Data->files =  realloc(Data->files, (Data->files_num+1)*sizeof(char *));
 		/* The next code is to remove the starting slash or dot slash */
 		mfile = (char *)archive_entry_pathname(entry);
 		if (*mfile == '/')
@@ -86,8 +84,12 @@ int ExtractPackage(const char *filename, PkgData *Data)
 			mfile += 2;
 
 		/* Avoid install/doinst.sh and install/README */
-		if (strcmp(mfile, DOINST_FILE) && strcmp(mfile, README_FILE))
-			Data->files[Data->files_num] = strdup(mfile);
+		if (strcmp(mfile, DOINST_FILE) && strcmp(mfile, README_FILE) && strcmp(mfile, "") && strcmp(mfile, "install/")) {
+
+			/* Save the file to push it in the database */
+			Data->files =  realloc(Data->files, (Data->files_num+1)*sizeof(char *));
+			Data->files[Data->files_num++] = strdup(mfile);
+		}
 	}
 	/* Clean up */
 	archive_read_close(a);
