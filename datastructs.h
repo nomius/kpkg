@@ -72,6 +72,10 @@
 #define DOINST_FILE (INSTALL "/doinst.sh")
 #define README_FILE (INSTALL "/README")
 
+#define KPKG_DB_HOME_DEFAULT "/var/packages/installed.kdb"
+#define MIRRORS_DIRECTORY_DEFAULT "/var/packages/mirrors"
+#define PACKAGES_DIRECTORY_DEFAULT "/var/packages/downloads"
+
 /* Distribution databases */
 /* CREATE TABLE PACKAGES(NAME TEXT KEY ASC, VERSION TEXT, ARCH TEXT, BUILD TEXT, EXTENSION TEXT, TEXT CRC); */
 /* CREATE TABLE FILESPKG(NAME TEXT, FILENAME TEXT NOT NULL, CRC TEXT) */

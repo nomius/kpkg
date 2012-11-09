@@ -244,6 +244,7 @@ int InstallPkg(char *package)
 	chdir(init_path);
 	if (!noreadme)
 		input = readline("Press intro to continue");
+	free(input);
 	fprintf(stdout, "Package %s installed\n", PackageOrig);
 	return 0;
 }
@@ -291,7 +292,6 @@ int DownloadPkg(char *name, char *out)
 			/* EOF leaves */
 			if ((input = readline("Which one do you want to download? ")) == NULL) {
 				freeLinks(&Links);
-				free(input);
 				return 1;
 			}
 			/* q leaves leaves */
@@ -581,11 +581,11 @@ static void say_help(int status)
 			" install          install local package or from a mirror\n"
 			" remove           remove a package from the system\n"
 			" search           search for a package in the database\n"
+			" upgrade          upgrade a package or the whole system\n"
 			" provides         search for files inside of installed packages\n"
 			" download         download a package from a mirror\n"
-			" instkdb          install a database in the mirror's path"
-			"\n"
-			"Kpkg %d by David B. Cortarello (Nomius) <dcortarello@gmail.com>\n\n", VERSION);
+			" instkdb          install a database in the mirror's path\n");
+	fprintf(stdout, "Kpkg %d by David B. Cortarello (Nomius) <dcortarello@gmail.com>\n\n", VERSION);
 	exit(status);
 }
 
@@ -597,21 +597,21 @@ int main(int argc, char *argv[])
 
 	/* Basic environment variables */
 	if (!(renv = getenv("KPKG_DB_HOME")))
-		dbname = strdup("/var/packages/installed.kdb");
+		dbname = strdup(KPKG_DB_HOME_DEFAULT);
 	else
 		dbname = strdup(renv);
 
 	if (!(renv = getenv("ROOT"))) {
 		HOME_ROOT = strdup("/");
-		MIRRORS_DIRECTORY = strdup("/var/packages/mirrors");
-		PACKAGES_DIRECTORY = strdup("/var/packages/downloads");
+		MIRRORS_DIRECTORY = strdup(MIRRORS_DIRECTORY_DEFAULT);
+		PACKAGES_DIRECTORY = strdup(PACKAGES_DIRECTORY_DEFAULT);
 	}
 	else {
 		HOME_ROOT = strdup(renv);
 		MIRRORS_DIRECTORY = malloc(sizeof(char)*PATH_MAX);
 		PACKAGES_DIRECTORY = malloc(sizeof(char)*PATH_MAX);
-		snprintf(MIRRORS_DIRECTORY, PATH_MAX, "%s/%s", HOME_ROOT, "/var/packages/mirrors");
-		snprintf(PACKAGES_DIRECTORY, PATH_MAX, "%s/%s", HOME_ROOT, "/var/packages/downloads");
+		snprintf(MIRRORS_DIRECTORY, PATH_MAX, "%s/%s", HOME_ROOT, MIRRORS_DIRECTORY_DEFAULT);
+		snprintf(PACKAGES_DIRECTORY, PATH_MAX, "%s/%s", HOME_ROOT, PACKAGES_DIRECTORY_DEFAULT);
 	}
 
 	if (!(renv = getenv("NOREADME")))
