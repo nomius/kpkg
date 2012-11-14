@@ -596,32 +596,28 @@ int main(int argc, char *argv[])
 	char *renv = NULL;
 
 	/* Basic environment variables */
-	if (!(renv = getenv("KPKG_DB_HOME")))
-		dbname = strdup(KPKG_DB_HOME_DEFAULT);
-	else
+	if ((renv = getenv("KPKG_DB_HOME")))
 		dbname = strdup(renv);
+	else
+		dbname = strdup(KPKG_DB_HOME_DEFAULT);
 
-	if (!(renv = getenv("ROOT"))) {
-		HOME_ROOT = strdup("/");
-		MIRRORS_DIRECTORY = strdup(MIRRORS_DIRECTORY_DEFAULT);
-		PACKAGES_DIRECTORY = strdup(PACKAGES_DIRECTORY_DEFAULT);
-	}
-	else {
+	if ((renv = getenv("ROOT"))) {
 		HOME_ROOT = strdup(renv);
 		MIRRORS_DIRECTORY = malloc(sizeof(char)*PATH_MAX);
 		PACKAGES_DIRECTORY = malloc(sizeof(char)*PATH_MAX);
 		snprintf(MIRRORS_DIRECTORY, PATH_MAX, "%s/%s", HOME_ROOT, MIRRORS_DIRECTORY_DEFAULT);
 		snprintf(PACKAGES_DIRECTORY, PATH_MAX, "%s/%s", HOME_ROOT, PACKAGES_DIRECTORY_DEFAULT);
 	}
-
-	if (!(renv = getenv("NOREADME")))
-		noreadme = 0;
 	else {
-		if (*renv != '\0')
-			noreadme = 1;
-		else
-			noreadme = 0;
+		HOME_ROOT = strdup("/");
+		MIRRORS_DIRECTORY = strdup(MIRRORS_DIRECTORY_DEFAULT);
+		PACKAGES_DIRECTORY = strdup(PACKAGES_DIRECTORY_DEFAULT);
 	}
+
+	noreadme = 0;
+	if ((renv = getenv("NOREADME")))
+		if (*renv)
+			noreadme = 1;
 
 	/* Commands parsing */
 	if (argc == 1) {
