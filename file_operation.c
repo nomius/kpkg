@@ -189,12 +189,16 @@ int Download(char *link, char *output)
 	FILE *out_file = NULL;
 	char *output_tmp = NULL;
 
-	output_tmp = malloc(sizeof(char) * strlen(output) + 5);
+	if(!(output_tmp = malloc(sizeof(char) * strlen(output) + 5))) {
+		fprintf(stderr, "Couldn't get the needed memory\n");
+		return -1;
+	}
 	sprintf(output_tmp, "%s_TMP", output);
 
 	/* Open the destination output */
-	if (!(out_file = fopen(output_tmp, "w"))) {
+	if (!(out_file = fopen(output_tmp, "wb"))) {
 		fprintf(stderr, "Can't create the output file %s (%s)\n", output_tmp, strerror(errno));
+		free(output_tmp);
 		return -1;
 	}
 
@@ -202,6 +206,7 @@ int Download(char *link, char *output)
 	if (!(curl = curl_easy_init())) {
 	    fprintf(stderr, "Couldn't initialize CURL\n");
 		fclose(out_file);
+		free(output_tmp);
 	    return -1;
 	}
 
@@ -213,21 +218,23 @@ int Download(char *link, char *output)
 	curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progress_func);
 
 	/* Do the job */
-	res = curl_easy_perform(curl);
-	curl_easy_cleanup(curl);
-	if (res != CURLE_OK) {
+	if((res = curl_easy_perform(curl)) != CURLE_OK) {
 		fprintf(stderr, "An error ocurr. CURL returned %d\n", res);
+		curl_easy_cleanup(curl);
 		fclose(out_file);
+		free(output_tmp);
 		return -1;
 	}
 	printf("\n\nDone\n");
+	curl_easy_cleanup(curl);
 	fclose(out_file);
 	
 	if (rename(output_tmp, output)) {
 		fprintf(stderr, "Can't rename %s to %s (%s)\n", output_tmp, output, strerror(errno));
+		free(output_tmp);
 		return -1;
 	}
-
+	free(output_tmp);
 	return 0;
 }
 
@@ -241,7 +248,7 @@ int GiveMeHash(char *filename, char *hash)
 {
 	int fd = 0;
 	uInt i = 0;
-	char data[8192];
+	unsigned char data[8192];
 	uLong crc;
 
 	/* Initialize the crc */
@@ -254,7 +261,7 @@ int GiveMeHash(char *filename, char *hash)
 	}
 
 	/* Create the new hash */
-	while((i = read(fd, data, sizeof(data))) > 0)
+	while ((i = read(fd, data, sizeof(data))) > 0)
 		crc = crc32(crc, (const Bytef *)data, i);
 	close(fd);
 
