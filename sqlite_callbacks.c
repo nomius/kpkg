@@ -106,7 +106,7 @@ int SaveListOfLinks(void *args, int numCols, char **results, char **columnNames)
 	char *link = NULL, *comment = NULL, *crc = NULL;
 	int i = 0;
 
-	for (i=0; i<numCols; i++){
+	for (i = 0; i < numCols; i++) {
 		if (!strcmp(columnNames[i], "LINK"))
 			link = results[i];
 		if (!strcmp(columnNames[i], "COMMENT"))
@@ -116,22 +116,13 @@ int SaveListOfLinks(void *args, int numCols, char **results, char **columnNames)
 	}
 
 	ptr->links = realloc(ptr->links, (ptr->index+1)*sizeof(char *));
-	if (link != NULL)
-		ptr->links[ptr->index] = strdup(link);
-	else
-		ptr->links[ptr->index] = strdup("No link");
+	ptr->links[ptr->index] = link?strdup(link):strdup("No link");
 
 	ptr->comments = realloc(ptr->comments, (ptr->index+1)*sizeof(char *));
-	if (comment != NULL)
-		ptr->comments[ptr->index] = strdup(comment);
-	else
-		ptr->comments[ptr->index] = strdup("No comments");
+	ptr->comments[ptr->index] = comment?strdup(comment):strdup("No comments");
 
 	ptr->crcs = realloc(ptr->crcs, (ptr->index+1)*sizeof(char *));
-	if (crc != NULL)
-		ptr->crcs[ptr->index] = strdup(crc);
-	else
-		ptr->crcs[ptr->index] = strdup("No CRC");
+	ptr->crcs[ptr->index] = crc?strdup(crc):strdup("No CRC");
 
 	ptr->index++;
 
