@@ -118,10 +118,12 @@ void freeLinks(ListOfLinks *Links)
 {
 	int i = 0;
 
-	for(i=0;i<Links->index;i++) {
+	for (i = 0; i < Links->index; i++) {
 		free(Links->links[i]);
 		free(Links->comments[i]);
+		free(Links->crcs[i]);
 	}
 	free(Links->links);
 	free(Links->comments);
+	free(Links->crcs);
 }
