@@ -224,7 +224,7 @@ static int InsertPkgFile(char *name, char **filenames, char *crc, int fileCount)
 			fprintf(stderr, "Could not prepare statement");
 			return -1;
 		}
-		
+
 		if (sqlite3_bind_text(stmt, 1, name, -1, SQLITE_STATIC) != SQLITE_OK) {
 			fprintf(stderr, "Could not bind first parameter");
 			return -1;
@@ -241,12 +241,13 @@ static int InsertPkgFile(char *name, char **filenames, char *crc, int fileCount)
 		}
 
 		if (sqlite3_step(stmt) != SQLITE_DONE) {
-			fprintf(stderr, "Could not execute prepared statement");
 			sqlite3_reset(stmt);
+			fprintf(stderr, "Could not execute prepared statement");
 		}
 	}
 
 	sqlite3_exec(Database, "COMMIT TRANSACTION", NULL, NULL, NULL);
+	sqlite3_reset(stmt);
 	
 	return 0;
 }
@@ -276,10 +277,10 @@ int InsertPkgDB(PkgData *Data)
  */
 int SearchLinkForPackage(char *name, ListOfLinks *Links, char *MIRROR)
 {
-	DIR *dip;
-	struct dirent *dit;
+	DIR *dip = NULL;
+	struct dirent *dit = NULL;
 	char tmp[MAX_QUERY];
-	sqlite3 *TMPDatabase;
+	sqlite3 *TMPDatabase = NULL;
 
 	if ((dip = opendir(MIRRORS_DIRECTORY)) == NULL) {
 		fprintf(stderr, "Couldn't open the mirror's database directory %s (%s)\n", MIRRORS_DIRECTORY, strerror(errno));
@@ -293,17 +294,20 @@ int SearchLinkForPackage(char *name, ListOfLinks *Links, char *MIRROR)
 			continue;
 		sprintf(tmp, "%s/%s", MIRRORS_DIRECTORY, dit->d_name);
 		if (sqlite3_open(tmp, &TMPDatabase)) {
-			fprintf(stderr, "Failed to open database %s (%s)\n", dbname, sqlite3_errmsg(Database));
+			fprintf(stderr, "Failed to open database %s (%s)\n", tmp, sqlite3_errmsg(TMPDatabase));
 			closedir(dip);
 			return -1;
 		}
 		snprintf(tmp, MAX_QUERY, "SELECT LINK, COMMENT, CRC FROM MIRRORPKG WHERE NAME = '%s'", name);
 		if (sqlite3_exec(TMPDatabase, tmp, &SaveListOfLinks, Links, NULL)) {
-			sqlite3_close(Database);
+			sqlite3_close(TMPDatabase);
 			closedir(dip);
 			return -1;
 		}
-		sqlite3_close(TMPDatabase);
+		if (sqlite3_close(TMPDatabase) != SQLITE_OK) {
+			fprintf(stderr, "Failed to close database %s (%s)\n", tmp, sqlite3_errmsg(TMPDatabase));
+			return -1;
+		}
 	}
 	closedir(dip);
 	if (Links->index == 0) {
