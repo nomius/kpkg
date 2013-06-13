@@ -56,6 +56,7 @@
 #include <zlib.h>
 #include <archive.h>
 #include <archive_entry.h>
+#include <time.h>
 #include "sqlite_callbacks.h"
 
 #define MAX_QUERY (PATH_MAX+40+80)
@@ -67,6 +68,7 @@
 #define PKG_EXTENSION 10
 #define PKG_CRC	15
 #define PKG_COMMENT 80
+#define PKG_DATE 19
 
 #define INSTALL "install"
 #define DOINST_FILE (INSTALL "/doinst.sh")
@@ -77,7 +79,7 @@
 #define PACKAGES_DIRECTORY_DEFAULT "/var/packages/downloads"
 
 /* Distribution databases */
-/* CREATE TABLE PACKAGES(NAME TEXT KEY ASC, VERSION TEXT, ARCH TEXT, BUILD TEXT, EXTENSION TEXT, TEXT CRC); */
+/* CREATE TABLE PACKAGES(NAME TEXT KEY ASC, VERSION TEXT, ARCH TEXT, BUILD TEXT, EXTENSION TEXT, TEXT CRC, TEXT DATE); */
 /* CREATE TABLE FILESPKG(NAME TEXT, FILENAME TEXT NOT NULL, CRC TEXT) */
 
 /* Mirror database structures */
@@ -91,6 +93,7 @@ typedef struct _PkgData {
 	char build[PKG_BUILD+1];
 	char extension[PKG_EXTENSION+1];
 	char crc[PKG_CRC+1];
+	char date[PKG_DATE+1];
 	int  files_num;
 	char **files;
 	char comment[PKG_COMMENT+1];

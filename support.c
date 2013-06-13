@@ -66,6 +66,17 @@ int ExistsPkg(PkgData *Data)
 	return 1;
 }
 
+static void GetSysDate(char *out)
+{
+	time_t rawtime;
+	struct tm *timeinfo;
+
+	time(&rawtime);
+	timeinfo = localtime(&rawtime);
+
+	strftime(out, 20,"%Y/%m/%d %I:%M:%S", timeinfo);
+}
+
 /**
  * This function transforms a package name (of the form "name-version-arch-build.extension) into a package common structure
  * @param Data A data structure where all the data will be stored in
@@ -107,6 +118,9 @@ int FillPkgDataFromPackage(PkgData *Data, char *filename)
     /* Now save the name */
     if (j == 0) return 1;
     strncpy(Data->name, filename, j+1); 
+
+	GetSysDate(Data->date);
+
     return 0;
 }
 

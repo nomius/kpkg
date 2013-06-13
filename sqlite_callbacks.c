@@ -160,6 +160,7 @@ int SearchPkgPrintCallback(void *args, int numCols, char **results, char **colum
 	else
 		memset(&Data, '\0', sizeof(PkgData));
 
+
 	for (i=0; i<numCols; i++) {
 		if (!strcmp(columnNames[i], "NAME")) {
 			if (!ecsv)
@@ -171,7 +172,7 @@ int SearchPkgPrintCallback(void *args, int numCols, char **results, char **colum
 		}
 		if (!strcmp(columnNames[i], "VERSION")) {
 			if (!ecsv)
-				printf(" '->  Version: %s\n", results[i]);
+				printf(" '->   Version: %s\n", results[i]);
 			else {
 				strncpy(Data.version, results[i], PKG_VERSION);
 				Data.version[strlen(results[i]) >= PKG_NAME?PKG_NAME-1:strlen(results[i])] = '\0';
@@ -179,7 +180,7 @@ int SearchPkgPrintCallback(void *args, int numCols, char **results, char **colum
 		}
 		if (!strcmp(columnNames[i], "ARCH")) {
 			if (!ecsv)
-				printf(" '->     Arch: %s\n", results[i]);
+				printf(" '->      Arch: %s\n", results[i]);
 			else {
 				strncpy(Data.arch, results[i], PKG_ARCH);
 				Data.arch[strlen(results[i]) >= PKG_NAME?PKG_NAME-1:strlen(results[i])] = '\0';
@@ -187,7 +188,7 @@ int SearchPkgPrintCallback(void *args, int numCols, char **results, char **colum
 		}
 		if (!strcmp(columnNames[i], "BUILD")) {
 			if (!ecsv)
-				printf(" '->    Build: %s\n", results[i]);
+				printf(" '->     Build: %s\n", results[i]);
 			else {
 				strncpy(Data.build, results[i], PKG_BUILD);
 				Data.build[strlen(results[i]) >= PKG_NAME?PKG_NAME-1:strlen(results[i])] = '\0';
@@ -195,7 +196,7 @@ int SearchPkgPrintCallback(void *args, int numCols, char **results, char **colum
 		}
 		if (!strcmp(columnNames[i], "EXTENSION")) {
 			if (!ecsv)
-				printf(" '->      Ext: %s\n", results[i]);
+				printf(" '->       Ext: %s\n", results[i]);
 			else {
 				strncpy(Data.extension, results[i], PKG_EXTENSION);
 				Data.extension[strlen(results[i]) >= PKG_NAME?PKG_NAME-1:strlen(results[i])] = '\0';
@@ -203,7 +204,7 @@ int SearchPkgPrintCallback(void *args, int numCols, char **results, char **colum
 		}
 		if (!strcmp(columnNames[i], "COMMENT")) {
 			if (!ecsv)
-				printf(" '-> Comments: %s\n", results[i] == NULL ? "No comments" : results[i]);
+				printf(" '->  Comments: %s\n", results[i] == NULL ? "No comments" : results[i]);
 			else {
 				if (results[i] == NULL)
 					strcpy(Data.comment, "No comments");
@@ -213,11 +214,24 @@ int SearchPkgPrintCallback(void *args, int numCols, char **results, char **colum
 				}
 			}
 		}
+		if (!strcmp(columnNames[i], "DATE")) {
+			if (!ecsv)
+				printf(" '-> Installed: %s\n", results[i] == NULL ? "No date" : results[i]);
+			else {
+				if (results[i] == NULL)
+					strcpy(Data.date, "No date");
+				else {
+					strncpy(Data.date, results[i], PKG_DATE);
+					Data.date[strlen(results[i]) >= PKG_DATE?PKG_DATE-1:strlen(results[i])] = '\0';
+				}
+			}
+		}
+
 	}
 
 	if (ecsv) {
 		if (*found == 0)
-			printf("Installed;%s;%s;%s;%s;%s", Data.name, Data.version, Data.arch, Data.build, Data.extension);
+			printf("Installed;%s;%s;%s;%s;%s;%s", Data.name, Data.version, Data.arch, Data.build, Data.extension, Data.date);
 		else if (*found == 2)
 			printf("Mirrored;%s;%s;%s;%s;%s;%s", Data.name, Data.version, Data.arch, Data.build, Data.extension, Data.comment);
 	}

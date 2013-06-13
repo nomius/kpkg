@@ -111,9 +111,9 @@ int SearchPkg(char *name)
 	}
 
 	if (!strcmp(name, "/all"))
-		snprintf(tmp, MAX_QUERY, "SELECT NAME, VERSION, ARCH, BUILD, EXTENSION FROM PACKAGES");
+		snprintf(tmp, MAX_QUERY, "SELECT NAME, VERSION, ARCH, BUILD, EXTENSION, DATE FROM PACKAGES");
 	else
-		snprintf(tmp, MAX_QUERY, "SELECT NAME, VERSION, ARCH, BUILD, EXTENSION FROM PACKAGES WHERE NAME LIKE '%%%s%%'", name);
+		snprintf(tmp, MAX_QUERY, "SELECT NAME, VERSION, ARCH, BUILD, EXTENSION, DATE FROM PACKAGES WHERE NAME LIKE '%%%s%%'", name);
 
 	if (sqlite3_exec(Database, tmp, &SearchPkgPrintCallback, &found, NULL)) {
 		fprintf(stderr, "Couldn't search for %s (%s)\n", name, sqlite3_errmsg(Database));
@@ -191,7 +191,7 @@ static int InsertPkgData(PkgData *Data)
 {
 	char query[MAX_QUERY];
 
-	snprintf(query, MAX_QUERY, "INSERT INTO PACKAGES (NAME, VERSION, ARCH, BUILD, EXTENSION, CRC) VALUES ('%s', '%s', '%s', '%s', '%s', '%s')", Data->name, Data->version, Data->arch, Data->build, Data->extension, Data->crc);
+	snprintf(query, MAX_QUERY, "INSERT INTO PACKAGES (NAME, VERSION, ARCH, BUILD, EXTENSION, CRC, DATE) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s')", Data->name, Data->version, Data->arch, Data->build, Data->extension, Data->crc, Data->date);
 	if (sqlite3_exec(Database, query, NULL, NULL, NULL)) {
 		fprintf(stderr, "Couldn't store the package %s with version %s in %s\n", Data->name, Data->version, dbname);
 		return -1;
