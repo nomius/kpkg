@@ -48,7 +48,7 @@ db_creater.o: db_creater.c
 	$(CC) -c db_creater.c -o db_creater.o
 
 version.h:
-	svn up | grep "^At" | awk -F '[ .]' '{print "#define VERSION " $$3 }' > version.h
+	echo "#define VERSION `git shortlog | grep -E '^[ ]+\w+' | wc -l`" > version.h
 
 clean:
 	rm -f file_operation.o sqlite_backend.o sqlite_callbacks.o support.o kpkg.o version.h kpkg kpkg_dynamic db_creater
