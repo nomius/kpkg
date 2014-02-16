@@ -19,21 +19,9 @@ Install procedure will only install kpkg in /usr/bin. To install the binary run 
 make install
 ```
 
-### Common errors
-
-kpkg was developed using subversion heading versions to keep version tracking, if you see an error as the following while building:
-```
-error: 'VERSION' undeclared
-```
-Please, run the following before building:
-```bash
-echo '#define VERSION 100' > version.h
-```
-Then you can try building again.
-
 ## Usage
 
-To use kpkg, please, refer to the man file provided by typing:
+To use kpkg, please, refer to the man page provided by typing:
 ```bash
 man 8 kpkg
 ```
