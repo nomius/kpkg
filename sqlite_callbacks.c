@@ -49,26 +49,15 @@
  */
 int RemoveFileCallback(void *args, int numCols, char **results, char **columnNames)
 {
-	char remove_query[MAX_QUERY], *name =  NULL, *filename = NULL;
+	char *filename = NULL;
 	myDir *ptr = (myDir *)args;
 	struct stat myfile;
 
-	if (!strcmp(columnNames[0], "NAME")) {
-		name = results[0];
+	if (!strcmp(columnNames[0], "NAME"))
 		filename = results[1];
-	}
-	else {
-		name = results[1];
+	else
 		filename = results[0];
-	}
 
-	snprintf(remove_query, MAX_QUERY, "DELETE FROM FILESPKG WHERE NAME = '%s' AND FILENAME = '%s'", name , filename);
-
-	if (sqlite3_exec(Database, remove_query, NULL, NULL, NULL)) {
-		fprintf(stderr, "Couldn't remove file %s from database\n", filename);
-		return -1;
-	}
-	
 	if (strcmp(filename, "./")) {
 		if (stat(filename, &myfile))
 			if (errno != ENOENT)

@@ -75,6 +75,13 @@ int RemovePkgFiles(char *name)
 	if (sqlite3_exec(Database, query, &RemoveFileCallback, &dirs, NULL))
 		return -1;
 
+	/* This is not as reliable as it used to be, but it's waaaay faster */ 
+	snprintf(query, MAX_QUERY, "DELETE FROM FILESPKG WHERE NAME = '%s'", name);
+	if (sqlite3_exec(Database, query, NULL, NULL, NULL)) {
+		fprintf(stderr, "Error removing %s from the database. Looks like you have some orphans files\n", name);
+		return -1;
+	}
+
 	i = dirs.index;
 	/* Remove empty directories */
 	dirs.index--;
