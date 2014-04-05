@@ -2,7 +2,7 @@ STRIP=strip
 STRIP_FLAGS_STATIC=--strip-debug
 STRIP_FLAGS_DYNAMIC=--strip-unneeded
 CC=cc
-CFLAGS=-O2 -pedantic -Wall -Werror
+CFLAGS=-O2 -pedantic -Wall
 CFLAGS_DEBUG=-gdwarf-2 -g3
 SQLITE3=/usr/lib/libsqlite3.a
 CURL=/usr/lib/libcurl.a
@@ -14,8 +14,11 @@ LIBARCHIVE=/usr/lib/libarchive.a
 READLINE=/usr/lib/libreadline.a
 NCURSES=/usr/lib/libncurses.a
 ACL=/usr/lib/libacl.a
-DYNAMIC_KPKG_LDFLAGS=-lsqlite3 -larchive -lpthread -llzma -lbz2 -lz -lm -lc -lcurl -lrt -lssl -lcrypto -lreadline -lncurses -lacl -ldl
-STATIC_KPKG_LDFLAGS=$(SQLITE3) $(CURL) $(SSL) $(LIBARCHIVE) $(BZIP2) $(LZMA) $(ZLIB) $(READLINE) $(NCURSES) $(ACL) -lrt -ldl -lpthread
+RTMP=/usr/lib/librtmp.a
+LZO=/usr/lib/liblzo2.a
+OPENSSL=/usr/lib/libssl.a
+DYNAMIC_KPKG_LDFLAGS=-lsqlite3 -larchive -lpthread -llzma -lbz2 -lz -lm -lc -lcurl -lrt -lssl -lcrypto -lreadline -lncurses -lrtmp -lzo -lssl -lacl -ldl
+STATIC_KPKG_LDFLAGS=$(SQLITE3) $(CURL) $(SSL) $(LIBARCHIVE) $(BZIP2) $(LZMA) $(ZLIB) $(READLINE) $(NCURSES) $(ACL) $(RTMP) $(LZO) $(OPENSSL) -lrt -ldl -lpthread
 
 LDFLAGS_DBCREATER=-lsqlite3 -lz
 
