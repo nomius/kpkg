@@ -61,14 +61,14 @@
 
 #define MAX_QUERY (PATH_MAX+40+80)
 
-#define PKG_NAME 40
-#define PKG_VERSION 10
-#define PKG_ARCH 10
-#define PKG_BUILD 3
-#define PKG_EXTENSION 10
-#define PKG_CRC	15
+#define PKG_NAME 64
+#define PKG_VERSION 40
+#define PKG_ARCH 20
+#define PKG_BUILD 20
+#define PKG_EXTENSION 20
+#define PKG_CRC	40
 #define PKG_COMMENT 80
-#define PKG_DATE 19
+#define PKG_DATE 40
 
 #define INSTALL "install"
 #define DOINST_FILE (INSTALL "/doinst.sh")
