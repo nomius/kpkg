@@ -49,12 +49,13 @@
 #include <sqlite3.h>
 #include <zlib.h>
 
-#define PKG_NAME 40
-#define PKG_VERSION 10
-#define PKG_ARCH 10
-#define PKG_BUILD 3
-#define PKG_EXTENSION 10
-#define PKG_CRC 15
+
+#define PKG_NAME 64
+#define PKG_VERSION 40
+#define PKG_ARCH 20
+#define PKG_BUILD 20
+#define PKG_EXTENSION 20
+#define PKG_CRC 40
 #define MAX_QUERY 1024
 
 typedef struct _PkgData {
