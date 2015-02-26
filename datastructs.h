@@ -74,6 +74,14 @@
 #define DOINST_FILE (INSTALL "/doinst.sh")
 #define README_FILE (INSTALL "/README")
 
+#define USE_OLD_FIELD_SEPARATOR 0
+
+#if (USE_OLD_FIELD_SEPARATOR == 0)
+#define PACKAGE_NAME_FORMAT "name-version-arch-build.ext"
+#else
+#define PACKAGE_NAME_FORMAT "name#version#arch#build.ext"
+#endif
+
 #define KPKG_DB_HOME_DEFAULT "/var/packages/installed.kdb"
 #define MIRRORS_DIRECTORY_DEFAULT "/var/packages/mirrors"
 #define PACKAGES_DIRECTORY_DEFAULT "/var/packages/downloads"

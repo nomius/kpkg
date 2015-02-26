@@ -77,52 +77,119 @@ static void GetSysDate(char *out)
 	strftime(out, 20,"%Y/%m/%d %I:%M:%S", timeinfo);
 }
 
+#if (USE_OLD_FIELD_SEPARATOR == 1)
+int FillPkgDataFromPackage(PkgData *Data, char *filename)
+{
+	int i = 0, j = 0, end = 0;
+
+	i = end = strlen(filename);
+
+	/* Get build and extension */
+	for (;filename[i] != '-' && i>0;i--) ;
+	if (i == 0) return 1;
+	i++;
+	/* While we are not on a ., it is part of the build */
+	for (j=i;filename[j]!='.' && j<end; j++) ;
+	if (j == end || j == i) return 1;
+	strncpy(Data->build, filename+i, j-i);
+	/* From the . to the end we are in the extension */
+	strncpy(Data->extension, filename+j+1, end-j);
+	/* Now, save the arch */
+	i -= 2;
+	end = i;
+	for (;filename[i]!= '-' && i>0;i--);
+	if (i==0 || i == end) return 1;
+	j = i-1;
+	i++;
+	strncpy(Data->arch, filename+i, end-i+1);
+	/* Now, save the version */
+	i -= 2;
+	end = i;
+	for (;filename[i]!= '-' && i>0;i--);
+	if (i==0) return 1;
+	j = i-1;
+	i++;
+	strncpy(Data->version, filename+i, end-i+1);
+	/* Now save the name */
+	if (j == 0) return 1;
+	strncpy(Data->name, filename, j+1); 
+
+	GetSysDate(Data->date);
+
+	return 0;
+}
+
+#else
+char **dstrtok(const char *str, char token)
+{
+	register int i;
+	int j = 0, init;
+	char **ret = NULL;
+
+	for (i = init = 0; *(str+i); i++) {
+		if (*(str+i) == token) {
+			/* Match token, make space for it and copy it */
+			ret = realloc(ret, sizeof(char *) * (j+1));
+			ret[j] = calloc(i-init+1, sizeof(char));
+			memcpy(ret[j++], str+init, i-init);
+			init = ++i;
+		}
+	}
+
+	/* We copy the last part, or in case no token were found all the string.
+	 * We make space also for the NULL pointer */
+	ret = realloc(ret, sizeof(char *) * (j+2));
+	ret[j] = calloc(i-init+1, sizeof(char));
+	memcpy(ret[j++], str+init, i-init);
+
+	/* Let's put a NULL as tokenizer ender */
+	ret[j] = NULL;
+
+	return ret;
+}
+
+
+void freetok(char **tstr)
+{
+	register int i;
+
+	for (i = 0; tstr[i] != NULL; i++)
+		free(tstr[i]);
+	free(tstr);
+}
+
+
 /**
- * This function transforms a package name (of the form "name-version-arch-build.extension) into a package common structure
+ * This function transforms a package name (of the form "name#version#arch#build.extension) into a package common structure
  * @param Data A data structure where all the data will be stored in
  * @param filename A filename, only in its basename form
  * @return If the package is well formed, 0 is returned and the Data structure gets filled. Otherwise 1.
  */
 int FillPkgDataFromPackage(PkgData *Data, char *filename)
 {
-    int i = 0, j = 0, end = 0;
+	char tmp[PKG_BUILD+1+PKG_EXTENSION+1], **tstr = NULL;
 
-    i = end = strlen(filename);
-
-    /* Get build and extension */
-    for (;filename[i] != '-' && i>0;i--) ;
-    if (i == 0) return 1;
-    i++;
-    /* While we are not on a ., it is part of the build */
-    for (j=i;filename[j]!='.' && j<end; j++) ;
-    if (j == end || j == i) return 1;
-    strncpy(Data->build, filename+i, j-i);
-    /* From the . to the end we are in the extension */
-    strncpy(Data->extension, filename+j+1, end-j);
-    /* Now, save the arch */
-    i -= 2;
-    end = i;
-    for (;filename[i]!= '-' && i>0;i--);
-    if (i==0 || i == end) return 1;
-    j = i-1;
-    i++;
-    strncpy(Data->arch, filename+i, end-i+1);
-    /* Now, save the version */
-    i -= 2;
-    end = i;
-    for (;filename[i]!= '-' && i>0;i--);
-    if (i==0) return 1;
-    j = i-1;
-    i++;
-    strncpy(Data->version, filename+i, end-i+1);
-    /* Now save the name */
-    if (j == 0) return 1;
-    strncpy(Data->name, filename, j+1); 
-
+	tstr = dstrtok(filename, '#');
+	strcpy(Data->name, tstr[0]);
+	strcpy(Data->version, tstr[1]);
+	strcpy(Data->arch, tstr[2]);
+	strcpy(tmp, tstr[3]);
+	freetok(tstr);
+	tstr = dstrtok(tmp, '.');
+	strcpy(Data->build, tstr[0]);
+	strcpy(Data->extension, tstr[1]);
 	GetSysDate(Data->date);
+
+	if (Data->name[0] == '\0' || 
+		Data->version[0] == '\0' || 
+		Data->arch[0] == '\0' || 
+		Data->build[0] == '\0' || 
+		Data->extension[0] == '\0')
+		return 1;
 
     return 0;
 }
+#endif
 
 /**
  * This function is issed to free the links of the ListOfLinks structure

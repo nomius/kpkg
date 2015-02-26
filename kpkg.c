@@ -200,7 +200,7 @@ int InstallPkg(char *package)
 
 	/* Fill the package structure according to the package name */
 	if (FillPkgDataFromPackage(&Data, ptr_name)) {
-		fprintf(stdout, "Wrong package name format. It should be \"name-version-arch-build.ext\"\n");
+		fprintf(stdout, "Wrong package name format. It should be \"" PACKAGE_NAME_FORMAT "\"\n");
 		chdir(init_path);
 		return -1;
 	}
@@ -490,7 +490,7 @@ int UpgradePkg(char *package)
 			close(i);
 			/* Get the package data from its name */
 			if (FillPkgDataFromPackage(&Data, basename(package))) {
-				fprintf(stdout, "Wrong package name format. It should be \"name-version-arch-build.ext\"\n");
+				fprintf(stdout, "Wrong package name format. It should be \"" PACKAGE_NAME_FORMAT "\"\n");
 				return -1;
 			}
 			/* Remove the package */
