@@ -168,6 +168,7 @@ void freetok(char **tstr)
 int FillPkgDataFromPackage(PkgData *Data, char *filename)
 {
 	char tmp[PKG_BUILD+1+PKG_EXTENSION+1], **tstr = NULL;
+	register int i = 0;
 
 	tstr = dstrtok(filename, '#');
 	strcpy(Data->name, tstr[0]);
@@ -177,7 +178,15 @@ int FillPkgDataFromPackage(PkgData *Data, char *filename)
 	freetok(tstr);
 	tstr = dstrtok(tmp, '.');
 	strcpy(Data->build, tstr[0]);
-	strcpy(Data->extension, tstr[1]);
+
+	memset(tmp, '\0', sizeof(tmp));
+	for (i = 1; tstr[i]; i++) {
+		strcat(tmp, ".");
+		strcat(tmp, tstr[i]);
+	}
+
+	strcpy(Data->extension, tmp+1);
+	freetok(tstr);
 	GetSysDate(Data->date);
 
 	if (Data->name[0] == '\0' || 
