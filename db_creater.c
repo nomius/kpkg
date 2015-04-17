@@ -137,45 +137,6 @@ int FillPkgDataFromPackage(PkgData *Data, char *filename)
 }
 
 #else
-char **dstrtok(const char *str, char token)
-{
-	register int i;
-	int j = 0, init;
-	char **ret = NULL;
-
-	for (i = init = 0; *(str+i); i++) {
-		if (*(str+i) == token) {
-			/* Match token, make space for it and copy it */
-			ret = realloc(ret, sizeof(char *) * (j+1));
-			ret[j] = calloc(i-init+1, sizeof(char));
-			memcpy(ret[j++], str+init, i-init);
-			init = ++i;
-		}
-	}
-
-	/* We copy the last part, or in case no token were found all the string.
-	 * We make space also for the NULL pointer */
-	ret = realloc(ret, sizeof(char *) * (j+2));
-	ret[j] = calloc(i-init+1, sizeof(char));
-	memcpy(ret[j++], str+init, i-init);
-
-	/* Let's put a NULL as tokenizer ender */
-	ret[j] = NULL;
-
-	return ret;
-}
-
-
-void freetok(char **tstr)
-{
-	register int i;
-
-	for (i = 0; tstr[i] != NULL; i++)
-		free(tstr[i]);
-	free(tstr);
-}
-
-
 /**
  * This function transforms a package name (of the form "name#version#arch#build.extension) into a package common structure
  * @param Data A data structure where all the data will be stored in
@@ -184,32 +145,28 @@ void freetok(char **tstr)
  */
 int FillPkgDataFromPackage(PkgData *Data, char *filename)
 {
-	char tmp[PKG_BUILD+1+PKG_EXTENSION+1], **tstr = NULL;
+	char tmp[PKG_BUILD+1+PKG_EXTENSION+1], *tstr = NULL, *fields[] = { Data->name, Data->version, Data->arch, tmp};
 	register int i = 0;
 
-	tstr = dstrtok(filename, '#');
-	strcpy(Data->name, tstr[0]);
-	strcpy(Data->version, tstr[1]);
-	strcpy(Data->arch, tstr[2]);
-	strcpy(tmp, tstr[3]);
-	freetok(tstr);
-	tstr = dstrtok(tmp, '.');
-	strcpy(Data->build, tstr[0]);
-
-	memset(tmp, '\0', sizeof(tmp));
-	for (i = 1; tstr[i]; i++) {
-		strcat(tmp, ".");
-		strcat(tmp, tstr[i]);
+	for (tstr = strtok(filename, "#"); i <= 3; tstr = strtok(NULL, "#"), i++) {
+		if (!tstr)
+			return 1;
+		strcpy(fields[i], tstr);
 	}
 
-	strcpy(Data->extension, tmp+1);
-	freetok(tstr);
+	if ((tstr = strtok(tmp, ".")))
+		strcpy(Data->build, tstr);
+	else
+		return 1;
 
-	if (Data->name[0] == '\0' || 
-		Data->version[0] == '\0' || 
-		Data->arch[0] == '\0' || 
-		Data->build[0] == '\0' || 
-		Data->extension[0] == '\0')
+	while ((tstr = strtok(NULL, "."))) {
+		strcat(Data->extension, tstr);
+		strcat(Data->extension, ".");
+	}
+
+	Data->extension[strlen(Data->extension)] = '\0';
+
+	if (Data->name[0] == '\0' || Data->version[0] == '\0' || Data->arch[0] == '\0' || Data->build[0] == '\0' || Data->extension[0] == '\0')
 		return 1;
 
     return 0;

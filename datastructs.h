@@ -74,7 +74,7 @@
 #define DOINST_FILE (INSTALL "/doinst.sh")
 #define README_FILE (INSTALL "/README")
 
-#if (USE_OLD_FIELD_SEPARATOR == 0)
+#if (USE_OLD_FIELD_SEPARATOR == 1)
 #define PACKAGE_NAME_FORMAT "name-version-arch-build.ext"
 #else
 #define PACKAGE_NAME_FORMAT "name#version#arch#build.ext"
