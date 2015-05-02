@@ -305,7 +305,7 @@ int SearchLinkForPackage(char *name, ListOfLinks *Links, char *MIRROR)
 			closedir(dip);
 			return -1;
 		}
-		snprintf(tmp, MAX_QUERY, "SELECT LINK, COMMENT, CRC FROM MIRRORPKG WHERE NAME = '%s'", name);
+		snprintf(tmp, MAX_QUERY, "SELECT NAME, VERSION, ARCH, BUILD, EXTENSION, LINK, COMMENT, CRC FROM MIRRORPKG WHERE NAME = '%s'", name);
 		if (sqlite3_exec(TMPDatabase, tmp, &SaveListOfLinks, Links, NULL)) {
 			sqlite3_close(TMPDatabase);
 			closedir(dip);

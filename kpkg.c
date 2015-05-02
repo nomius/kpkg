@@ -259,15 +259,12 @@ int DownloadPkg(char *name, char *out)
 {
 	ListOfLinks Links;
 	char filename[PATH_MAX], pkgcrc[32];
-	int i = 0, j = 0, fd = 0;
+	int i = 0, fd = 0;
 	char *input = NULL;
 	char *MIRROR = NULL;
 
 	/* Initialize everything up */
-	Links.index = 0;
-	Links.links = NULL;
-	Links.comments = NULL;
-	Links.crcs = NULL;
+	memset(&Links, 0, sizeof(ListOfLinks));
 
 	/* Search for the package's links */
 	/* If there is no, 1 is returned, so we leave here */
@@ -327,11 +324,7 @@ int DownloadPkg(char *name, char *out)
 		}
 	}
 
-	/* Get the output filename */
-	for (j = strlen(Links.links[i]) - 1; Links.links[i][j] != '/' && j >= 0; j--) ;
-	if (Links.links[i][j] == '/')
-		j++;
-	sprintf(filename, "%s/%s", PACKAGES_DIRECTORY, &(Links.links[i][j]));
+	sprintf(filename, "%s/%s#%s#%s#%s.%s", PACKAGES_DIRECTORY, Links.name[i], Links.version[i], Links.arch[i], Links.build[i], Links.extension[i]);
 
 	/* If the output already exist and the CRC is ok, then great, we already have it, so there's no need to download it again */
 	if ((fd = open(filename, O_RDONLY)) >= 0) {
@@ -594,6 +587,7 @@ int main(int argc, char *argv[])
 	int i = 1;
 	int ret = 0;
 	char *renv = NULL;
+	Database = NULL;
 
 	/* Basic environment variables */
 	if ((renv = getenv("KPKG_DB_HOME")))

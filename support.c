@@ -52,6 +52,13 @@ int ExistsPkg(PkgData *Data)
 	strncpy(versionb, Data->version, PKG_VERSION);
 	memset(Data->version, '\0', sizeof(Data->version));
 
+	if (!Database)
+		if (sqlite3_open(dbname, &Database)) {
+			fprintf(stderr, "Failed to open database %s (%s)\n", dbname, sqlite3_errmsg(Database));
+			return -1;
+		}
+
+
 	snprintf(query, MAX_QUERY, "SELECT NAME, VERSION, ARCH, BUILD, EXTENSION FROM PACKAGES WHERE NAME = '%s'", Data->name);
 	if (sqlite3_exec(Database, query, &ReturnSilentDataFromDB, Data, NULL)) {
 		fprintf(stderr, "Couldn't search for [%s] in database [%s]\n", Data->name, dbname);
@@ -129,7 +136,8 @@ int FillPkgDataFromPackage(PkgData *Data, char *filename)
  */
 int FillPkgDataFromPackage(PkgData *Data, char *filename)
 {
-	char tmp[PKG_BUILD+1+PKG_EXTENSION+1], *tstr = NULL, *fields[] = { Data->name, Data->version, Data->arch, tmp};
+	char tmp[PKG_BUILD+1+PKG_EXTENSION+1], *tstr = NULL;
+	char *fields[] = { Data->name, Data->version, Data->arch, tmp};
 	register int i = 0;
 
 	for (tstr = strtok(filename, "#"); i <= 3; tstr = strtok(NULL, "#"), i++) {
@@ -148,7 +156,7 @@ int FillPkgDataFromPackage(PkgData *Data, char *filename)
 		strcat(Data->extension, ".");
 	}
 
-	Data->extension[strlen(Data->extension)] = '\0';
+	Data->extension[strlen(Data->extension)-1] = '\0';
 	GetSysDate(Data->date);
 
 	if (Data->name[0] == '\0' || Data->version[0] == '\0' || Data->arch[0] == '\0' || Data->build[0] == '\0' || Data->extension[0] == '\0')

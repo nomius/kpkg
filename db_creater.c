@@ -96,47 +96,6 @@ int GiveMeHash(char *filename, char *hash)
 }
 
 
-#if (USE_OLD_FIELD_SEPARATOR == 1)
-int FillPkgDataFromPackage(PkgData *Data, char *filename)
-{
-	int i = 0, j = 0, end = 0;
-
-	i = end = strlen(filename);
-
-	/* Get build and extension */
-	for (;filename[i] != '-' && i>0;i--) ;
-	if (i == 0) return 1;
-	i++;
-	/* While we are not on a ., it is part of the build */
-	for (j=i;filename[j]!='.' && j<end; j++) ;
-	if (j == end || j == i) return 1;
-	strncpy(Data->build, filename+i, j-i);
-	/* From the . to the end we are in the extension */
-	strncpy(Data->extension, filename+j+1, end-j);
-	/* Now, save the arch */
-	i -= 2;
-	end = i;
-	for (;filename[i]!= '-' && i>0;i--);
-	if (i==0 || i == end) return 1;
-	j = i-1;
-	i++;
-	strncpy(Data->arch, filename+i, end-i+1);
-	/* Now, save the version */
-	i -= 2;
-	end = i;
-	for (;filename[i]!= '-' && i>0;i--);
-	if (i==0) return 1;
-	j = i-1;
-	i++;
-	strncpy(Data->version, filename+i, end-i+1);
-	/* Now save the name */
-	if (j == 0) return 1;
-	strncpy(Data->name, filename, j+1); 
-
-	return 0;
-}
-
-#else
 /**
  * This function transforms a package name (of the form "name#version#arch#build.extension) into a package common structure
  * @param Data A data structure where all the data will be stored in
@@ -145,9 +104,10 @@ int FillPkgDataFromPackage(PkgData *Data, char *filename)
  */
 int FillPkgDataFromPackage(PkgData *Data, char *filename)
 {
-	char tmp[PKG_BUILD+1+PKG_EXTENSION+1], *tstr = NULL, *fields[] = { Data->name, Data->version, Data->arch, tmp};
+	char tmp[PKG_BUILD+1+PKG_EXTENSION+1], *tstr = NULL, *fields[] = { Data->name, Data->version, Data->arch, tmp}, cp[PATH_MAX];
 	register int i = 0;
 
+	strncpy(cp, filename, PATH_MAX);
 	for (tstr = strtok(filename, "#"); i <= 3; tstr = strtok(NULL, "#"), i++) {
 		if (!tstr)
 			return 1;
@@ -164,14 +124,20 @@ int FillPkgDataFromPackage(PkgData *Data, char *filename)
 		strcat(Data->extension, ".");
 	}
 
-	Data->extension[strlen(Data->extension)] = '\0';
+	Data->extension[strlen(Data->extension)-1] = '\0';
+
+	snprintf(Data->link, PATH_MAX, "%s/%s%%23%s%%23%s%%23%s.%s", link_pkgs, Data->name, Data->version, Data->arch, Data->build, Data->extension);
+
+	if (GiveMeHash(cp, Data->crc)) {
+		fprintf(stderr, "Error aquiring crc32 from file [%s]\n", filename);
+		return 1;
+	}
 
 	if (Data->name[0] == '\0' || Data->version[0] == '\0' || Data->arch[0] == '\0' || Data->build[0] == '\0' || Data->extension[0] == '\0')
 		return 1;
 
-    return 0;
+	return 0;
 }
-#endif
 
 void usage(st)
 {

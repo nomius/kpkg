@@ -92,10 +92,20 @@ int RemoveFileCallback(void *args, int numCols, char **results, char **columnNam
 int SaveListOfLinks(void *args, int numCols, char **results, char **columnNames)
 {
 	ListOfLinks *ptr = (ListOfLinks *)args;
-	char *link = NULL, *comment = NULL, *crc = NULL;
+	char *name = NULL, *version = NULL, *arch = NULL, *build = NULL, *extension = NULL, *link = NULL, *comment = NULL, *crc = NULL;
 	int i = 0;
 
 	for (i = 0; i < numCols; i++) {
+		if (!strcmp(columnNames[i], "NAME"))
+			name = results[i];
+		if (!strcmp(columnNames[i], "VERSION"))
+			version = results[i];
+		if (!strcmp(columnNames[i], "ARCH"))
+			arch = results[i];
+		if (!strcmp(columnNames[i], "BUILD"))
+			build = results[i];
+		if (!strcmp(columnNames[i], "EXTENSION"))
+			extension = results[i];
 		if (!strcmp(columnNames[i], "LINK"))
 			link = results[i];
 		if (!strcmp(columnNames[i], "COMMENT"))
@@ -103,6 +113,22 @@ int SaveListOfLinks(void *args, int numCols, char **results, char **columnNames)
 		if (!strcmp(columnNames[i], "CRC"))
 			crc = results[i];
 	}
+
+
+	ptr->name = realloc(ptr->name, (ptr->index+1)*sizeof(char *));
+	ptr->name[ptr->index] = name?strdup(name):strdup("No name");
+
+	ptr->version = realloc(ptr->version, (ptr->index+1)*sizeof(char *));
+	ptr->version[ptr->index] = version?strdup(version):strdup("No version");
+
+	ptr->arch = realloc(ptr->arch, (ptr->index+1)*sizeof(char *));
+	ptr->arch[ptr->index] = arch?strdup(arch):strdup("No arch");
+
+	ptr->build = realloc(ptr->build, (ptr->index+1)*sizeof(char *));
+	ptr->build[ptr->index] = build?strdup(build):strdup("No build");
+
+	ptr->extension = realloc(ptr->extension, (ptr->index+1)*sizeof(char *));
+	ptr->extension[ptr->index] = extension?strdup(extension):strdup("No extension");
 
 	ptr->links = realloc(ptr->links, (ptr->index+1)*sizeof(char *));
 	ptr->links[ptr->index] = link?strdup(link):strdup("No link");

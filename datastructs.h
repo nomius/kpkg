@@ -118,6 +118,11 @@ typedef struct _ListOfPackages {
 } ListOfPackages;
 
 typedef struct _ListOfLinks {
+	char **name;
+	char **version;
+	char **arch;
+	char **build;
+	char **extension;
 	char **links;
 	char **comments;
 	char **crcs;
