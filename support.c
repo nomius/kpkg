@@ -84,49 +84,6 @@ static void GetSysDate(char *out)
 	strftime(out, 20,"%Y/%m/%d %I:%M:%S", timeinfo);
 }
 
-#if (USE_OLD_FIELD_SEPARATOR == 1)
-int FillPkgDataFromPackage(PkgData *Data, char *filename)
-{
-	int i = 0, j = 0, end = 0;
-
-	i = end = strlen(filename);
-
-	/* Get build and extension */
-	for (;filename[i] != '-' && i>0;i--) ;
-	if (i == 0) return 1;
-	i++;
-	/* While we are not on a ., it is part of the build */
-	for (j=i;filename[j]!='.' && j<end; j++) ;
-	if (j == end || j == i) return 1;
-	strncpy(Data->build, filename+i, j-i);
-	/* From the . to the end we are in the extension */
-	strncpy(Data->extension, filename+j+1, end-j);
-	/* Now, save the arch */
-	i -= 2;
-	end = i;
-	for (;filename[i]!= '-' && i>0;i--);
-	if (i==0 || i == end) return 1;
-	j = i-1;
-	i++;
-	strncpy(Data->arch, filename+i, end-i+1);
-	/* Now, save the version */
-	i -= 2;
-	end = i;
-	for (;filename[i]!= '-' && i>0;i--);
-	if (i==0) return 1;
-	j = i-1;
-	i++;
-	strncpy(Data->version, filename+i, end-i+1);
-	/* Now save the name */
-	if (j == 0) return 1;
-	strncpy(Data->name, filename, j+1); 
-
-	GetSysDate(Data->date);
-
-	return 0;
-}
-
-#else
 
 /**
  * This function transforms a package name (of the form "name#version#arch#build.extension) into a package common structure
@@ -136,11 +93,13 @@ int FillPkgDataFromPackage(PkgData *Data, char *filename)
  */
 int FillPkgDataFromPackage(PkgData *Data, char *filename)
 {
-	char tmp[PKG_BUILD+1+PKG_EXTENSION+1], *tstr = NULL;
+	char tmp[PKG_BUILD+1+PKG_EXTENSION+1], *tstr = NULL, tmp2[PATH_MAX];
 	char *fields[] = { Data->name, Data->version, Data->arch, tmp};
 	register int i = 0;
 
-	for (tstr = strtok(filename, "#"); i <= 3; tstr = strtok(NULL, "#"), i++) {
+	strncpy(tmp2, filename, PATH_MAX);
+
+	for (tstr = strtok(tmp2, "#"); i <= 3; tstr = strtok(NULL, "#"), i++) {
 		if (!tstr)
 			return 1;
 		strcpy(fields[i], tstr);
@@ -164,7 +123,6 @@ int FillPkgDataFromPackage(PkgData *Data, char *filename)
 
     return 0;
 }
-#endif
 
 /**
  * This function is issed to free the links of the ListOfLinks structure
