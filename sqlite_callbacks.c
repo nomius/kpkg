@@ -59,6 +59,7 @@ int RemoveFileCallback(void *args, int numCols, char **results, char **columnNam
 		filename = results[0];
 
 	if (strcmp(filename, "./")) {
+		memset(&myfile, 0, sizeof(myfile));
 		if (stat(filename, &myfile))
 			if (errno != ENOENT)
 				fprintf(stderr, "Could not obtain the file information for %s (%s)\n", filename, strerror(errno));
