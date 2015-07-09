@@ -105,15 +105,12 @@ int FillPkgDataFromPackage(PkgData *Data, char *filename)
 		strcpy(fields[i], tstr);
 	}
 
-	if ((tstr = strtok(tmp, ".")))
-		strcpy(Data->build, tstr);
+	if ((tstr = strchr(tmp, '.'))) {
+		strncpy(Data->build, tmp, tstr-tmp);
+		strncpy(Data->extension, tstr+1, PKG_EXTENSION-1);
+	}
 	else
 		return 1;
-
-	while ((tstr = strtok(NULL, "."))) {
-		strcat(Data->extension, tstr);
-		strcat(Data->extension, ".");
-	}
 
 	Data->extension[strlen(Data->extension)-1] = '\0';
 	GetSysDate(Data->date);
@@ -215,10 +212,14 @@ int GetFileFullPath(char *package, char *pkgfullpathname)
 {
 	char *ptr_name = basename(package);
 	char *pkgfullpath = dirname(package);
+	char tmp[PATH_MAX];
+
 	chdir(pkgfullpath);
-	pkgfullpath = getcwd(malloc(PATH_MAX), PATH_MAX);
+	if (!(pkgfullpath = getcwd(tmp, PATH_MAX))) {
+		fprintf(stderr, "Can't get current path (%s)\n", strerror(errno));
+		return -1;
+	}
 	snprintf(pkgfullpathname, PATH_MAX, "%s/%s", pkgfullpath, ptr_name);
-	free(pkgfullpath);
 	return 0;
 }
 
