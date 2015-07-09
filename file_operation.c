@@ -62,10 +62,10 @@ int ExtractPackage(const char *filename, PkgData *Data)
 	/* Initialize the file extraction structure */
 	a = archive_read_new();
 	archive_read_support_format_all(a);
-	archive_read_support_compression_all(a);
+	archive_read_support_filter_all(a);
 
 	/* Open the file with libarchive */
-	if (archive_read_open_file(a, filename, 10240) != ARCHIVE_OK) {
+	if (archive_read_open_filename(a, filename, 10240) != ARCHIVE_OK) {
 		fprintf(stderr, "Can't open file %s (%s)\n", filename, archive_error_string(a));
 		return -1;
 	}
@@ -93,7 +93,7 @@ int ExtractPackage(const char *filename, PkgData *Data)
 	}
 	/* Clean up */
 	archive_read_close(a);
-	archive_read_finish(a);
+	archive_read_free(a);
 
 	return 0;
 }
@@ -187,18 +187,13 @@ int Download(char *link, char *output)
 	CURLcode res;
 	CURL *curl = NULL;
 	FILE *out_file = NULL;
-	char *output_tmp = NULL;
+	char output_tmp[PATH_MAX];
 
-	if(!(output_tmp = malloc(sizeof(char) * strlen(output) + 5))) {
-		fprintf(stderr, "Couldn't get the needed memory\n");
-		return -1;
-	}
 	sprintf(output_tmp, "%s_TMP", output);
 
 	/* Open the destination output */
 	if (!(out_file = fopen(output_tmp, "wb"))) {
 		fprintf(stderr, "Can't create the output file %s (%s)\n", output_tmp, strerror(errno));
-		free(output_tmp);
 		return -1;
 	}
 
@@ -206,7 +201,7 @@ int Download(char *link, char *output)
 	if (!(curl = curl_easy_init())) {
 	    fprintf(stderr, "Couldn't initialize CURL\n");
 		fclose(out_file);
-		free(output_tmp);
+		unlink(output_tmp);
 	    return -1;
 	}
 
@@ -222,7 +217,7 @@ int Download(char *link, char *output)
 		fprintf(stderr, "An error ocurr. CURL returned %d\n", res);
 		curl_easy_cleanup(curl);
 		fclose(out_file);
-		free(output_tmp);
+		unlink(output_tmp);
 		return -1;
 	}
 	printf("\n\nDone\n");
@@ -231,10 +226,9 @@ int Download(char *link, char *output)
 	
 	if (rename(output_tmp, output)) {
 		fprintf(stderr, "Can't rename %s to %s (%s)\n", output_tmp, output, strerror(errno));
-		free(output_tmp);
+		unlink(output_tmp);
 		return -1;
 	}
-	free(output_tmp);
 	return 0;
 }
 

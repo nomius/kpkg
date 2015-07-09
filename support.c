@@ -141,3 +141,127 @@ void freeLinks(ListOfLinks *Links)
 	free(Links->comments);
 	free(Links->crcs);
 }
+
+
+/**
+ * Given a List of Links this function is a user interaction function to get the number of link required
+ * @param Links The list of links to iterate
+ * @return a valid index in the array
+ */
+int GetLinkFromInput(ListOfLinks *Links)
+{
+	int i = 0, s = 0;
+	char *input = NULL;
+
+	/* Print out all the links with their associated numbers */
+	while (i < Links->index) {
+		fprintf(stdout, "[%d] %s\n", i, Links->links[i]);
+		i++;
+	}
+	i = 0;
+
+	/* Input to get the link */
+	while (1) {
+		/* EOF leaves */
+		printf("Which one do you want to download? [q (cancel) / c (comment) / number]: ");
+		s = getline(&input, (size_t *)&s, stdin);
+		if (*input == EOF || *input == '\n' || s == 0 || s == 1 || s == -1) {
+			free(input);
+			freeLinks(Links);
+			return 1;
+		}
+		/* q leaves leaves */
+		else if (*input == 'q') {
+			freeLinks(Links);
+			free(input);
+			return 1;
+		}
+		/* input the "c" letter and its number to get the link comments */
+		else if (*input == 'c') {
+			i = atoi(input + 1);
+			if (i < Links->index && i >= 0)
+				fprintf(stdout, "Comments for [%d]:\n%s\n", i, Links->comments[i]);
+			else
+				fprintf(stdout, "Invalid link number\n");
+			free(input);
+		}
+		/* If no of the cases above and it is not a number, then prompt again */
+		else if (!isdigit(*input)) {
+			fprintf(stdout, "Invalid character\n");
+			free(input);
+			continue;
+		}
+		/* If it is a number get that number as it is OUR number */
+		else {
+			i = atoi(input);
+			if (i < Links->index && i >= 0) {
+				free(input);
+				break;
+			}
+			fprintf(stdout, "Invalid link given\n");
+		}
+	}
+	return i;
+}
+
+
+/**
+ * This function gets the full path of a given file
+ * @param name A filename
+ * @param pkgfullpathname The full path (output)
+ * @return 0
+ */
+int GetFileFullPath(char *package, char *pkgfullpathname)
+{
+	char *ptr_name = basename(package);
+	char *pkgfullpath = dirname(package);
+	chdir(pkgfullpath);
+	pkgfullpath = getcwd(malloc(PATH_MAX), PATH_MAX);
+	snprintf(pkgfullpathname, PATH_MAX, "%s/%s", pkgfullpath, ptr_name);
+	free(pkgfullpath);
+	return 0;
+}
+
+
+#define FillField(x, len) \
+	if (x) { \
+		strncpy(out->x, x, len); \
+		out->x[strlen(x)>len?len:strlen(x)] = '\0'; \
+	}
+
+/**
+ * This function fills a PkgData structure from the given parameters
+ * @param name a package name
+ * @param version a package version
+ * @param arch a package architecture
+ * @param build a package build
+ * @param extension a package extension
+ * @param crc a package crc32
+ * @param date a package installed date
+ * @param comment a package comment
+ */
+void FillPkgDataStruct(PkgData *out, char *name, char *version, char *arch, char *build, char *extension, char *crc, char *date, char *comment)
+{
+	FillField(name, PKG_NAME)
+	FillField(version, PKG_VERSION)
+	FillField(arch, PKG_ARCH)
+	FillField(build, PKG_BUILD)
+	FillField(extension, PKG_EXTENSION)
+	FillField(crc, PKG_CRC)
+	FillField(date, PKG_DATE)
+	FillField(comment, PKG_COMMENT)
+}
+
+/**
+ * This function removes the extension of a given filename
+ * @param s the filename
+ * @return the string without the extension
+ */
+char *RemoveExtension(char *s)
+{
+	char *ptr = strrchr(s, '.');
+	if (ptr != NULL)
+		*ptr = '\0';
+	return s;
+}
+

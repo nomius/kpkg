@@ -43,5 +43,8 @@
 int ExistsPkg(PkgData *Data);
 int FillPkgDataFromPackage(PkgData *Data, char *filename);
 void freeLinks(ListOfLinks *Links);
+int GetFileFullPath(char *package, char *pkgfullpathname);
+void FillPkgDataStruct(PkgData *out, char *name, char *version, char *arch, char *build, char *extension, char *crc, char *date, char *comment);
+char *RemoveExtension(char *s);
 
 #endif

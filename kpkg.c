@@ -44,6 +44,7 @@
 #include "file_operation.h"
 #include "version.h"
 
+
 /**
  * This function removes the whole package structure from PACKAGES and FILESPKG tables
  * @param name A package name
@@ -52,9 +53,9 @@
  */
 int RemovePkg(char *name, int silent)
 {
-	char *pathb = getcwd(malloc(PATH_MAX), PATH_MAX);
 	int ret = 0;
 	PkgData Data;
+	char *pathb = getcwd(malloc(PATH_MAX), PATH_MAX);
 
 	/* Let's open the database */
 	if (sqlite3_open(dbname, &Database)) {
@@ -70,11 +71,9 @@ int RemovePkg(char *name, int silent)
 		return -1;
 	}
 
-	/* Check if it is already installed */
+	/* Check if it is installed */
 	memset(&Data, '\0', sizeof(Data));
-	strncpy(Data.name, name, PKG_NAME);
-	Data.name[strlen(name)>PKG_NAME?PKG_NAME:strlen(name)] = '\0';
-
+	FillPkgDataStruct(&Data, name, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 	if (!ExistsPkg(&Data)) {
 		if (!silent)
 			fprintf(stderr, "Package %s does not exist\n", name);
@@ -144,12 +143,13 @@ int InstKpkgDB(char *dbpath)
 
 	/* If there was an error, show it and remove the destination database */
 	if (i < 0) {
-		fprintf(stderr, "Can't read from %s (%s)\n", dbpath, strerror(errno));
+		fprintf(stderr, "Error reading %s (%s)\n", dbpath, strerror(errno));
 		unlink(tmp);
 		return -1;
 	}
 	return 0;
 }
+
 
 /**
  * This function installs a package by calling ExtractPackage to extract it and InsertPkgDB to insert the package in PACKAGES and FILESPKG tables
@@ -182,14 +182,10 @@ int InstallPkg(char *package)
 	}
 	else
 		close(fd);
+	ptr_name = basename(output);
 
 	/* Get the full pathname instead of its relative name */
-	ptr_name = basename(package);
-	pkgfullpath = dirname(package);
-	chdir(pkgfullpath);
-	pkgfullpath = getcwd(malloc(PATH_MAX), PATH_MAX);
-	snprintf(pkgfullpathname, PATH_MAX, "%s/%s", pkgfullpath, ptr_name);
-	free(pkgfullpath);
+	GetFileFullPath(package, pkgfullpathname);
 
 	/* Switch to HOME_ROOT */
 	if (chdir(HOME_ROOT)) {
@@ -242,9 +238,11 @@ int InstallPkg(char *package)
 	/* Clean everything up */
 	sqlite3_close(Database);
 	chdir(init_path);
-	if (!noreadme)
-		input = readline("Press intro to continue");
-	free(input);
+	if (!noreadme) {
+		printf("Press intro to continue");
+		getline(&input, (size_t *)&fd, stdin);
+		free(input);
+	}
 	fprintf(stdout, "Package %s installed\n", PackageOrig);
 	return 0;
 }
@@ -260,7 +258,6 @@ int DownloadPkg(char *name, char *out)
 	ListOfLinks Links;
 	char filename[PATH_MAX], pkgcrc[32];
 	int i = 0, fd = 0;
-	char *input = NULL;
 	char *MIRROR = NULL;
 
 	/* Initialize everything up */
@@ -275,54 +272,8 @@ int DownloadPkg(char *name, char *out)
 	else if (SearchLinkForPackage(name, &Links, NULL))
 		return 1;
 
-	/* This is really ugly, and unfortunally we have to handle it */
-	if (Links.index > 1) {
-		/* Print out all the links with their associated numbers */
-		while (i < Links.index) {
-			fprintf(stdout, "[%d] %s\n", i, Links.links[i]);
-			i++;
-		}
-		i = 0;
-
-		/* Input to get the link */
-		while (1) {
-			/* EOF leaves */
-			if ((input = readline("Which one do you want to download? ")) == NULL) {
-				freeLinks(&Links);
-				return 1;
-			}
-			/* q leaves leaves */
-			else if (*input == 'q') {
-				freeLinks(&Links);
-				free(input);
-				return 1;
-			}
-			/* input the "c" letter and its number to get the link comments */
-			else if (*input == 'c') {
-				i = atoi(input + 1);
-				if (i < Links.index && i >= 0)
-					fprintf(stdout, "Comments for [%d]:\n%s\n", i, Links.comments[i]);
-				else
-					fprintf(stdout, "Invalid link number\n");
-				free(input);
-			}
-			/* If no of the cases above and it is not a number, then prompt again */
-			else if (!isdigit(*input)) {
-				fprintf(stdout, "Invalid character\n");
-				free(input);
-				continue;
-			}
-			/* If it is a number get that number as it is OUR number */
-			else {
-				i = atoi(input);
-				if (i < Links.index && i >= 0) {
-					free(input);
-					break;
-				}
-				fprintf(stdout, "Invalid link given\n");
-			}
-		}
-	}
+	if (Links.index > 1)
+		i = GetLinkFromInput(Links);
 
 	sprintf(filename, "%s/%s#%s#%s#%s.%s", PACKAGES_DIRECTORY, Links.name[i], Links.version[i], Links.arch[i], Links.build[i], Links.extension[i]);
 
@@ -410,10 +361,9 @@ int UpdateMirrorDB(char *db)
 			fprintf(stdout, "Comments for [%s]:\n%s\n", db, dbDesc);
 
 		/* Get the database! */
-		if (dbLink[0] != '\0') {
+		if (dbLink[0] != '\0')
 			if (Download(dbLink, dbpath) == -1)
 				return -1;
-		}
 
 		return 0;
 	}
@@ -424,40 +374,134 @@ int UpdateMirrorDB(char *db)
 		return -1;
 	}
 
+	i = 1;
 	while ((dit = readdir(dip)) != NULL) {
 		/* Skip directories . and .. */
 		if (!strcmp(dit->d_name, ".") || !strcmp(dit->d_name, ".."))
 			continue;
 
-		/* Get the full path name for that database */
-		snprintf(dbpath, PATH_MAX, "%s/%s", MIRRORS_DIRECTORY, dit->d_name);
-
-		/* Get its data */
-		memset(dbLink, '\0', sizeof(dbLink));
-		memset(dbDesc, '\0', sizeof(dbDesc));
-		if (GetDataFromMirrorDatabase(dbpath, "LINK", dbLink) == -1)
-			return -1;
-		if (GetDataFromMirrorDatabase(dbpath, "DESC", dbDesc) == -1)
-			return -1;
-
-		/* Show comments for this database if any */
-		if (dbDesc[0] != '\0') {
-			dbNiceName = strdup(dit->d_name);
-
-			/* Remove the extension to display it nicely with its comment */
-			for (i = strlen(dbNiceName) - 1; dbNiceName[i] != '.' && i >= 0; i--) ;
-			if (i > 0)
-				dbNiceName[i] = '\0';
-			fprintf(stdout, "Comments for [%s]:\n%s\n", dbNiceName, dbDesc);
-			free(dbNiceName);
-		}
-
-		/* Get the database! */
-		if (Download(dbLink, dbpath) == -1)
-			return -1;
+		if (!UpdateMirrorDB(RemoveExtension(dit->d_name)))
+			i = 0;
 	}
 	closedir(dip);
 
+	return i;
+}
+
+
+int UpgradeFromLocalFile(char *package)
+{
+	PkgData Data;
+
+	/* Get the package data from its name */
+	if (FillPkgDataFromPackage(&Data, basename(package))) {
+		fprintf(stdout, "Wrong package name format. It should be \"" PACKAGE_NAME_FORMAT "\"\n");
+		return -1;
+	}
+	/* Remove the package */
+	if (RemovePkg(Data.name, 1) == -1) {
+		fprintf(stderr, "Failed to remove the old version of %s\n", Data.name);
+		return -1;
+	}
+	/* Install the package */
+	if (InstallPkg(package) == -1) {
+		fprintf(stderr, "Could not install the new version of %s\n", Data.name);
+		return -1;
+	}
+	return 0;
+}
+
+
+int UpgradeFromMirror(char *package)
+{
+	PkgData Data;
+	char MIRROR[NAME_MAX];
+
+	memset(&Data, '\0', sizeof(Data));
+	FillPkgDataStruct(&Data, package, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+
+	if (!ExistsPkg(&Data)) {
+		fprintf(stdout, "Package %s isn't installed (perhaps you meant install?)\n", package);
+		return 1;
+	}
+	/* Check if there's a new version available on the mirror */
+	switch (NewVersionAvailable(&Data, MIRROR)) {
+		case -1: {
+			fprintf(stderr, "Failed to check for new version\n");
+			return -1;
+		}
+		case 0:
+			return 0;
+	}
+	/* Great, found a new version, download it */
+	setenv("MIRROR", MIRROR, 1);
+	if (DownloadPkg(Data.name, NULL) == -1) 
+		return -1;
+
+	/* Remove the old one */
+	if (RemovePkg(Data.name, 1) == -1) {
+		fprintf(stderr, "Failed to remove the old version of %s\n", Data.name);
+		return -1;
+	}
+
+	/* Install it */
+	if (InstallPkg(Data.name) == -1) {
+		fprintf(stderr, "Could not install the new version of %s\n", Data.name);
+		return -1;
+	}
+	return 0;
+}
+
+
+int UpgradeSinglePackage(char *package)
+{
+	int fd = 0;
+
+	/* Upgrade a single package */
+	if ((fd = open(package, O_RDONLY)) >= 0) {
+		/* Ok, the package itself was given */
+		close(fd);
+		return UpgradeFromLocalFile(package);
+	}
+	return UpgradeFromMirror(package);
+}
+
+
+int UpgradeSystem(void)
+{
+	PkgData Data;
+	ListOfPackages Packages;
+	char MIRROR[NAME_MAX];
+	int ret = 0, i = 0;
+
+	/* Oooook, let's upgrade the whole thing */
+	if (GetListOfPackages(&Packages) == -1)
+		return -1;
+	for (i = 0; i < Packages.index; i++) {
+		/* Let's serialize the PkgData structure */
+		memset(&Data, '\0', sizeof(Data));
+		FillPkgDataStruct(&Data, Packages.packages[i], Packages.versions[i], NULL, Packages.builds[i], NULL, NULL, NULL, NULL);
+
+		/* Check for new versions in mirrors */
+		if ((ret = NewVersionAvailable(&Data, MIRROR)) == 1) {
+			printf("Upgrading: [%s] [%s] [%s]\n", Data.name, Data.version, Data.build);
+			setenv("MIRROR", MIRROR, 1);
+			if (DownloadPkg(Data.name, NULL) == -1)
+				continue;
+			if (RemovePkg(Data.name, 1) == -1) {
+				fprintf(stderr, "Failed to remove the old version of %s\n", Data.name);
+				return -1;
+			}
+			if (InstallPkg(Data.name) == -1) {
+				fprintf(stderr, "Could not install the new version of %s\n", Data.name);
+				return -1;
+			}
+		}
+		else if (ret == -1) {
+			fprintf(stderr, "Failed to upgrade %s\n", Data.name);
+			return -1;
+		}
+	}
 	return 0;
 }
 
@@ -469,97 +513,9 @@ int UpdateMirrorDB(char *db)
  */
 int UpgradePkg(char *package)
 {
-	PkgData Data;
-	ListOfPackages Packages;
-	char MIRROR[NAME_MAX];
-	int ret = 0, i = 0;
-
-	memset(&Data, '\0', sizeof(Data));
-
-	if (package) {
-		/* Upgrade a single package */
-		if ((i = open(package, O_RDONLY)) >= 0) {
-			/* Ok, the package itself was given */
-			close(i);
-			/* Get the package data from its name */
-			if (FillPkgDataFromPackage(&Data, basename(package))) {
-				fprintf(stdout, "Wrong package name format. It should be \"" PACKAGE_NAME_FORMAT "\"\n");
-				return -1;
-			}
-			/* Remove the package */
-			if (RemovePkg(Data.name, 1) == -1) {
-				fprintf(stderr, "Failed to remove the old version of %s\n", Data.name);
-				return -1;
-			}
-			/* Install the package */
-			if (InstallPkg(package) == -1) {
-				fprintf(stderr, "Could not install the new version of %s\n", Data.name);
-				return -1;
-			}
-			return 0;
-		}
-		else {
-			/* Ok the package wasn't actually given, but a name */
-			strncpy(Data.name, package, PKG_NAME);
-			Data.name[strlen(package)>PKG_NAME?PKG_NAME:strlen(package)] = '\0';
-			if (!ExistsPkg(&Data)) {
-				fprintf(stdout, "Package %s isn't installed (perhaps you meant install?)\n", package);
-				return 1;
-			}
-			/* Check if there's a new version available on the mirror */
-			if ((ret = NewVersionAvailable(&Data, MIRROR))) {
-				setenv("MIRROR", MIRROR, 1);
-
-				/* Great, found a new version, download it */
-				if (DownloadPkg(Data.name, NULL) == -1)
-					return -1;
-
-				/* Remove the old one */
-				if ((ret = RemovePkg(Data.name, 1)) == -1) {
-					fprintf(stderr, "Failed to remove the old version of %s\n", Data.name);
-					return -1;
-				}
-
-				/* Install it */
-				if (InstallPkg(Data.name) == -1) {
-					fprintf(stderr, "Could not install the new version of %s\n", Data.name);
-				}
-			}
-			return 0;
-		}
-	}
-	else {
-		/* Oooook, let's upgrade the whole thing */
-		if (GetListOfPackages(&Packages) == -1)
-			return -1;
-		for (i = 0; i < Packages.index; i++) {
-			/* Let's serialize the PkgData structure */
-			strcpy(Data.name, Packages.packages[i]);
-			strcpy(Data.version, Packages.versions[i]);
-			strcpy(Data.build, Packages.builds[i]);
-
-			/* Check for new versions in mirrors */
-			if ((ret = NewVersionAvailable(&Data, MIRROR)) == 1) {
-				printf("Upgrading: [%s] [%s] [%s]\n", Data.name, Data.version, Data.build);
-				setenv("MIRROR", MIRROR, 1);
-				if (DownloadPkg(Data.name, NULL) == -1)
-					continue;
-				if (RemovePkg(Data.name, 1) == -1) {
-					fprintf(stderr, "Failed to remove the old version of %s\n", Data.name);
-					return -1;
-				}
-				if (InstallPkg(Data.name) == -1) {
-					fprintf(stderr, "Could not install the new version of %s\n", Data.name);
-					return -1;
-				}
-			}
-			else if (ret == -1) {
-				fprintf(stderr, "Failed to upgrade %s\n", Data.name);
-				return -1;
-			}
-		}
-	}
-	return 0;
+	if (package)
+		return UpgradeSinglePackage(package);
+	return UpgradeSystem();
 }
 
 

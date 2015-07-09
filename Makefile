@@ -11,14 +11,11 @@ BZIP2=/usr/lib/libbz2.a
 LZMA=/usr/lib/liblzma.a
 ZLIB=/usr/lib/libz.a
 LIBARCHIVE=/usr/lib/libarchive.a
-READLINE=/usr/lib/libreadline.a
-NCURSES=/usr/lib/libncurses.a
 ACL=/usr/lib/libacl.a
-RTMP=/usr/lib/librtmp.a
 LZO=/usr/lib/liblzo2.a
 OPENSSL=/usr/lib/libssl.a
-DYNAMIC_KPKG_LDFLAGS=-lsqlite3 -larchive -lpthread -llzma -lbz2 -lz -lm -lc -lcurl -lrt -lssl -lcrypto -lreadline -lncurses -lrtmp -lssl -lacl -ldl
-STATIC_KPKG_LDFLAGS=$(SQLITE3) $(CURL) $(SSL) $(LIBARCHIVE) $(BZIP2) $(LZMA) $(ZLIB) $(READLINE) $(NCURSES) $(ACL) $(RTMP) $(LZO) $(OPENSSL) -lrt -ldl -lpthread
+DYNAMIC_KPKG_LDFLAGS=-lsqlite3 -larchive -lpthread -llzma -lbz2 -lz -lm -lc -lcurl -lssl -lcrypto -lrtmp -lssl -lacl -ldl
+STATIC_KPKG_LDFLAGS=$(SQLITE3) $(CURL) $(SSL) $(LIBARCHIVE) $(BZIP2) $(LZMA) $(ZLIB) $(READLINE) $(NCURSES) $(ACL) $(RTMP) $(LZO) $(OPENSSL) -ldl -lpthread
 
 LDFLAGS_DBCREATER=-lsqlite3 -lz
 
@@ -30,7 +27,7 @@ all: support.o sqlite_callbacks.o sqlite_backend.o file_operation.o db_creater.o
 
 kpkg_dynamic: support.o sqlite_callbacks.o sqlite_backend.o file_operation.o kpkg.o
 	$(CC) $(CFLAGS) -o kpkg_dynamic kpkg.o sqlite_backend.o sqlite_callbacks.o support.o file_operation.o $(DYNAMIC_KPKG_LDFLAGS)
-	$(STRIP) $(STRIP_FLAGS_DYNAMIC) kpkg_dynamic
+	#$(STRIP) $(STRIP_FLAGS_DYNAMIC) kpkg_dynamic
 
 file_operation.o: file_operation.c datastructs.h sqlite_callbacks.h
 	$(CC) $(CFLAGS) -c file_operation.c -o file_operation.o
