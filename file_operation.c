@@ -143,35 +143,39 @@ void PostInstall(void)
  */
 static int progress_func(void* clientp, double dltotal, double dlnow, double ultotal, double ulnow)
 {
+	static int check = 0;
 	int columns, dots, i;
 	double fractiondownloaded;
 	char *pcolumns;
 
-	if ((pcolumns = getenv("COLUMNS")) != NULL) {
-		if ((columns = atoi(pcolumns) - 29) < 0)
+	if (check % 1024 == 0) {
+		if ((pcolumns = getenv("COLUMNS")) != NULL) {
+			if ((columns = atoi(pcolumns) - 29) < 0)
+				columns = 51;
+		}
+		else
 			columns = 51;
+
+		if (dlnow == 0.0)
+			fractiondownloaded = 0.0;
+		else
+			fractiondownloaded = dlnow / dltotal;
+
+		dots = (int)(fractiondownloaded * columns);
+
+		printf(" %3.0f%% [", fractiondownloaded * 100);
+
+		for (i = 0; i < dots; i++)
+			printf("=");
+		printf(">");
+
+		for ( ; i < columns; i++)
+			printf(" ");
+
+		printf("] [%dK/%dK]\r", ((int)dlnow)/1024, ((int)dltotal)/1024);
+		fflush(stdout);
 	}
-	else
-		columns = 51;
-
-	if (dlnow == 0.0)
-		fractiondownloaded = 0.0;
-	else
-		fractiondownloaded = dlnow / dltotal;
-
-	dots = (int)(fractiondownloaded * columns);
-
-	printf(" %3.0f%% [", fractiondownloaded * 100);
-
-	for (i = 0; i < dots; i++)
-		printf("=");
-	printf(">");
-
-	for ( ; i < columns; i++)
-		printf(" ");
-
-	printf("] [%dK/%dK]\r", ((int)dlnow)/1024, ((int)dltotal)/1024);
-	fflush(stdout);
+	check++;
 
 	return 0;
 }
@@ -188,6 +192,9 @@ int Download(char *link, char *output)
 	CURL *curl = NULL;
 	FILE *out_file = NULL;
 	char output_tmp[PATH_MAX];
+	char *display = NULL;
+	
+	display = getenv("NO_DOWNLOAD_OUTPUT");
 
 	sprintf(output_tmp, "%s_TMP", output);
 
@@ -205,12 +212,19 @@ int Download(char *link, char *output)
 	    return -1;
 	}
 
+	if (!display)
+		fprintf(stdout, "Downloading: %s\n\n", link);
+
 	/* Set the curl options */
-	fprintf(stdout, "Downloading: %s\n\n", link);
 	curl_easy_setopt(curl, CURLOPT_URL, link);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, out_file);
-	curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0);
-	curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progress_func);
+
+	if (!display) {
+		curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0);
+		curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progress_func);
+	}
+	else
+		curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, NULL);
 
 	/* Do the job */
 	if((res = curl_easy_perform(curl)) != CURLE_OK) {
@@ -220,10 +234,12 @@ int Download(char *link, char *output)
 		unlink(output_tmp);
 		return -1;
 	}
-	printf("\n\nDone\n");
 	curl_easy_cleanup(curl);
 	fclose(out_file);
-	
+
+	if (!display)
+		printf("\n\nDone\n");
+
 	if (rename(output_tmp, output)) {
 		fprintf(stderr, "Can't rename %s to %s (%s)\n", output_tmp, output, strerror(errno));
 		unlink(output_tmp);
