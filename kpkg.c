@@ -133,6 +133,7 @@ int InstKpkgDB(char *dbpath)
 		fprintf(stderr, "Can't open %s for writing (%s)\n", dbpath, strerror(errno));
 		return -1;
 	}
+	strncpy(fileremove, tmp, PATH_MAX-1);
 
 	/* Read and write */
 	while ((i = read(fdi, tmpbuf, PATH_MAX)) > 0)
@@ -140,6 +141,7 @@ int InstKpkgDB(char *dbpath)
 
 	close(fdi);
 	close(fdo);
+	*fileremove = '\0';
 
 	/* If there was an error, show it and remove the destination database */
 	if (i < 0) {
@@ -570,6 +572,9 @@ int main(int argc, char *argv[])
 	if ((renv = getenv("NOREADME")))
 		if (*renv)
 			noreadme = 1;
+
+	signal(SIGINT, cleanup);
+	signal(SIGTERM, cleanup);
 
 	/* Commands parsing */
 	if (argc == 1) {

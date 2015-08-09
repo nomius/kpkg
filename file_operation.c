@@ -38,6 +38,7 @@
 
 
 #include "datastructs.h"
+#include "support.h"
 
 /**
  * This function extracts the package pointed by filename in the place where you are using libarchive
@@ -203,6 +204,7 @@ int Download(char *link, char *output)
 		fprintf(stderr, "Can't create the output file %s (%s)\n", output_tmp, strerror(errno));
 		return -1;
 	}
+	strncpy(fileremove, output_tmp, PATH_MAX-1);
 
 	/* Initialize curl */
 	if (!(curl = curl_easy_init())) {
@@ -236,6 +238,7 @@ int Download(char *link, char *output)
 	}
 	curl_easy_cleanup(curl);
 	fclose(out_file);
+	*fileremove = '\0';
 
 	if (!display)
 		printf("\n\nDone\n");

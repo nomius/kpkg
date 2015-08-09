@@ -38,6 +38,7 @@
 
 
 #include "datastructs.h"
+#include "support.h"
 
 /**
  * This is a support function to know if a given package name exists in the PACKAGES database. If the package exists in the database, its info is restored in the Data structure given
@@ -266,3 +267,13 @@ char *RemoveExtension(char *s)
 	return s;
 }
 
+/**
+ * This function removes the current opened file when handling SIGINT or SIGTERM
+ * @param sig the signal number
+ */
+void cleanup(int sig)
+{
+	if (*fileremove)
+		unlink(fileremove);
+	exit(1);
+}
