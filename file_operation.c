@@ -148,7 +148,7 @@ static int progress_func(void* clientp, double dltotal, double dlnow, double ult
 	double fractiondownloaded;
 	char *pcolumns;
 
-	if (check % 1024 == 0) {
+	if (check % 1024 == 0 || dlnow == dltotal) {
 		if ((pcolumns = getenv("COLUMNS")) != NULL) {
 			if ((columns = atoi(pcolumns) - 29) < 0)
 				columns = 51;
