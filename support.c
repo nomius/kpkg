@@ -91,6 +91,7 @@ static void GetSysDate(char *out)
  * @param Data A data structure where all the data will be stored in
  * @param filename A filename, only in its basename form
  * @return If the package is well formed, 0 is returned and the Data structure gets filled. Otherwise 1.
+ * TODO: Improve this function to get rid of char *fields
  */
 int FillPkgDataFromPackage(PkgData *Data, char *filename)
 {

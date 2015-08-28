@@ -47,6 +47,7 @@ int GetFileFullPath(char *package, char *pkgfullpathname);
 void FillPkgDataStruct(PkgData *out, char *name, char *version, char *arch, char *build, char *extension, char *crc, char *date, char *comment);
 char *RemoveExtension(char *s);
 void cleanup(int sig);
+int GetLinkFromInput(ListOfLinks *Links);
 
 char fileremove[PATH_MAX];
 
