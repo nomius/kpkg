@@ -160,9 +160,8 @@ int InstKpkgDB(char *dbpath)
  */
 int InstallPkg(char *package)
 {
-	char *ptr_name = NULL, *pkgfullpath = NULL, *init_path = NULL, *input = NULL;
+	char *ptr_name = NULL, *init_path = NULL, *input = NULL;
 	char pkgfullpathname[PATH_MAX];
-	char output[PATH_MAX];
 	char PackageOrig[PATH_MAX];
 	int fd = 0;
 	PkgData Data;
@@ -277,7 +276,7 @@ int DownloadPkg(char *name, char *out)
 		return 1;
 
 	if (Links.index > 1)
-		i = GetLinkFromInput(Links);
+		i = GetLinkFromInput(&Links);
 
 	sprintf(filename, "%s/%s#%s#%s#%s.%s", PACKAGES_DIRECTORY, Links.name[i], Links.version[i], Links.arch[i], Links.build[i], Links.extension[i]);
 
@@ -337,7 +336,6 @@ int UpdateMirrorDB(char *db)
 	char dbpath[PATH_MAX];
 	char dbLink[PATH_MAX];
 	char dbDesc[PATH_MAX];
-	char *dbNiceName;
 	DIR *dip;
 	struct dirent *dit;
 
@@ -622,6 +620,7 @@ int main(int argc, char *argv[])
 		else
 			while (argv[++i] != NULL)
 				ret |= UpgradePkg(argv[i]);
+		FreeExceptions();
 	}
 	free(dbname);
 	free(HOME_ROOT);
@@ -630,3 +629,4 @@ int main(int argc, char *argv[])
 
 	return ret;
 }
+

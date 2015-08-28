@@ -71,6 +71,18 @@ void LoadExceptions(int mode)
 }
 
 /**
+ * This function free the Exception's array
+ */
+void FreeExceptions(void)
+{
+	register int i = 0;
+
+	for (;i < TotalExceptions; i++)
+		free(Exceptions[i]);
+	free(Exceptions);
+}
+
+/**
  * This function except files using fnmatch.
  * @param fname the filename to be excepted
  * @return If no exception was found 0 if returned, otherwise 1
