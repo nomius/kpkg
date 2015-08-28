@@ -36,9 +36,54 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-
+#include <fnmatch.h>
 #include "datastructs.h"
 #include "support.h"
+
+/**
+ * This function initialize the array of exceptions from the /etc/kpkg.exceptions file
+ * @param mode The mode to run this function: INIT = only initialize array and number of exceptions. DEFAULT, loads the exceptions from the file
+ */
+void LoadExceptions(int mode)
+{
+	char tmp[PATH_MAX];
+	FILE *fp = NULL;
+
+	if (mode == INIT) {
+		Exceptions = NULL;
+		TotalExceptions = 0;
+		return;
+	}
+
+	if (!(fp = fopen(EXCEPTIONS_FILE, "r")))
+		return;
+
+	while (fgets(tmp, PATH_MAX, fp)) {
+		tmp[strlen(tmp)-1] = '\0';
+		if (*tmp == EOF || *tmp == '\n' || *tmp == '\0')
+			continue;
+
+		TotalExceptions += 1;
+		Exceptions = realloc(Exceptions, TotalExceptions * sizeof(char *));
+		Exceptions[TotalExceptions-1] = strdup(tmp);
+	}
+	fclose(fp);
+}
+
+/**
+ * This function except files using fnmatch.
+ * @param fname the filename to be excepted
+ * @return If no exception was found 0 if returned, otherwise 1
+ */
+int ExceptFile(const char *fname)
+{
+	register int i = 0;
+
+	for (; i < TotalExceptions; i++)
+		if (!fnmatch(Exceptions[i], fname, FNM_PATHNAME))
+			return 1;
+	return 0;
+}
 
 /**
  * This function extracts the package pointed by filename in the place where you are using libarchive
@@ -71,11 +116,6 @@ int ExtractPackage(const char *filename, PkgData *Data)
 		return -1;
 	}
 	for (Data->files_num = 0, Data->files = NULL; archive_read_next_header(a, &entry) == ARCHIVE_OK;) {
-		/* Uncompress the file */
-		if (archive_read_extract(a, entry, flags)) {
-			fprintf(stderr, "Could not uncompress %s (%s)\n", archive_entry_pathname(entry), archive_error_string(a));
-			continue;
-		}
 
 		/* The next code is to remove the starting slash or dot slash */
 		mfile = (char *)archive_entry_pathname(entry);
@@ -83,6 +123,15 @@ int ExtractPackage(const char *filename, PkgData *Data)
 			mfile += 1;
 		else if (*mfile == '.' && *(mfile + 1) == '/')
 			mfile += 2;
+
+		if (ExceptFile(mfile))
+			continue;
+
+		/* Uncompress the file */
+		if (archive_read_extract(a, entry, flags)) {
+			fprintf(stderr, "Could not uncompress %s (%s)\n", archive_entry_pathname(entry), archive_error_string(a));
+			continue;
+		}
 
 		/* Avoid install/doinst.sh and install/README */
 		if (strcmp(mfile, DOINST_FILE) && strcmp(mfile, README_FILE) && strcmp(mfile, "") && strcmp(mfile, "install/")) {

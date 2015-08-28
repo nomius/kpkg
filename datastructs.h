@@ -79,6 +79,10 @@
 #define MIRRORS_DIRECTORY_DEFAULT "/var/packages/mirrors"
 #define PACKAGES_DIRECTORY_DEFAULT "/var/packages/downloads"
 
+#define EXCEPTIONS_FILE "/etc/kpkg.exceptions"
+#define INIT 0
+#define DEFAULT 1
+
 /* Distribution databases */
 /* CREATE TABLE PACKAGES(NAME TEXT KEY ASC, VERSION TEXT, ARCH TEXT, BUILD TEXT, EXTENSION TEXT, TEXT CRC, TEXT DATE); */
 /* CREATE TABLE FILESPKG(NAME TEXT, FILENAME TEXT NOT NULL, CRC TEXT) */
@@ -130,4 +134,6 @@ char *HOME_ROOT;
 char *MIRRORS_DIRECTORY;
 char *PACKAGES_DIRECTORY;
 int noreadme;
+char **Exceptions;
+int TotalExceptions;
 

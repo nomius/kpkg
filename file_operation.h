@@ -44,5 +44,7 @@ int ExtractPackage(const char *filename, PkgData *Data);
 void PostInstall(void);
 int Download(char *link, char *output);
 int GiveMeHash(char *filename, char *hash);
+void LoadExceptions(int mode);
+int ExceptFile(const char *fname);
 
 #endif

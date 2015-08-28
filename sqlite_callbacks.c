@@ -38,6 +38,7 @@
 
 
 #include "datastructs.h"
+#include "file_operation.h"
 
 /**
  * This function is the callback issued when a file is found for deletion. It removes the file from the database and then removes it from the disk
@@ -70,12 +71,16 @@ int RemoveFileCallback(void *args, int numCols, char **results, char **columnNam
 			ptr->directories[ptr->index] = strdup(filename);
 			ptr->index++;
 		}
-		else
+		else {
+			if (ExceptFile(filename))
+				return 0;
+
 			if (unlink(filename))
 				if (errno != ENOENT) {
 					fprintf(stderr, "Could not remove %s (%s)\n", filename, strerror(errno));
 					return -1;
 				}
+		}
 	}
 
 	return 0;

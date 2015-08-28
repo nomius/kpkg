@@ -542,6 +542,7 @@ static void say_help(int status)
 	exit(status);
 }
 
+
 int main(int argc, char *argv[])
 {
 	int i = 1;
@@ -582,6 +583,8 @@ int main(int argc, char *argv[])
 		free(HOME_ROOT);
 		say_help(1);
 	}
+
+	LoadExceptions(INIT);
 	if (!strcmp(argv[1], "help")) {
 		free(dbname);
 		free(HOME_ROOT);
@@ -613,6 +616,7 @@ int main(int argc, char *argv[])
 				ret |= UpdateMirrorDB(argv[i]);
 	}
 	else if (!strcmp(argv[1], "upgrade")) {
+		LoadExceptions(DEFAULT);
 		if (argv[2] == NULL)
 			UpgradePkg(NULL);
 		else
