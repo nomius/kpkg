@@ -90,10 +90,10 @@ if [ $CHOWN = "y" ]; then
 fi
 
 # Compress manpages with gzip
-if [ $GZMAN = "y" -a -d usr/man ]; then
+if [ $GZMAN = "y" -a -d usr/share/man ]; then
 	# Compress manpages with gzip
-	find usr/man -type f | xargs gzip
-	for link in `find usr/man -type l`; do
+	find usr/share/man -type f | xargs gzip
+	for link in `find usr/share/man -type l`; do
 		orig=`readlink ${link}`
 		rm ${link}
 		ln -sf `basename ${orig}`.gz ${link}.gz
