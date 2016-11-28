@@ -469,7 +469,7 @@ int UpgradeSinglePackage(char *package)
 }
 
 
-int UpgradeSystem(void)
+int UpgradeSystem(int dry_run)
 {
 	PkgData Data;
 	ListOfPackages Packages;
@@ -486,6 +486,10 @@ int UpgradeSystem(void)
 
 		/* Check for new versions in mirrors */
 		if ((ret = NewVersionAvailable(&Data, MIRROR)) == 1) {
+			if (dry_run) {
+				printf("%s (%s build %s) => (%s build %s)\n", Data.name, Packages.versions[i], Packages.builds[i], Data.version, Data.build);
+				continue;
+			}
 			printf("Upgrading: [%s] [%s] [%s]\n", Data.name, Data.version, Data.build);
 			setenv("MIRROR", MIRROR, 1);
 			if (DownloadPkg(Data.name, NULL) == -1)
@@ -517,7 +521,7 @@ int UpgradePkg(char *package)
 {
 	if (package)
 		return UpgradeSinglePackage(package);
-	return UpgradeSystem();
+	return UpgradeSystem(0);
 }
 
 
@@ -533,6 +537,7 @@ static void say_help(int status)
 			" remove           remove a package from the system\n"
 			" search           search for a package in the database\n"
 			" upgrade          upgrade a package or the whole system\n"
+			" diff             show upgradeable packages\n"
 			" provides         search for files inside of installed packages\n"
 			" download         download a package from a mirror\n"
 			" instkdb          install a database in the mirror's path\n");
@@ -622,6 +627,10 @@ int main(int argc, char *argv[])
 				ret |= UpgradePkg(argv[i]);
 		FreeExceptions();
 	}
+	else if (!strcmp(argv[1], "diff")) {
+		UpgradeSystem(1);
+	}
+
 	free(dbname);
 	free(HOME_ROOT);
 	free(MIRRORS_DIRECTORY);
