@@ -421,6 +421,8 @@ int NewVersionAvailable(PkgData *Data, char *MIRROR)
 		sqlite3_close(TMPDatabase);
 		/* Return the mirror if the version or builds found are differents */
 		if (TMPData.version[0] != '\0' && TMPData.build[0] != '\0' && (strcmp(TMPData.version, Data->version) || strcmp(TMPData.build, Data->build))) {
+			strncpy(Data->version, TMPData.version, PKG_VERSION);
+			strncpy(Data->build, TMPData.build, PKG_BUILD);
 			strncpy(MIRROR, dit->d_name, NAME_MAX);
 			sqlite3_close(TMPDatabase);
 			closedir(dip);
