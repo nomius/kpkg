@@ -490,7 +490,7 @@ int UpgradeSystem(int dry_run)
 				printf("%s (%s build %s) => (%s build %s)\n", Data.name, Packages.versions[i], Packages.builds[i], Data.version, Data.build);
 				continue;
 			}
-			printf("Upgrading: [%s] [%s] [%s]\n", Data.name, Data.version, Data.build);
+			printf("Upgrading [%s]  (%s build %s) => (%s build %s)\n", Data.name, Packages.versions[i], Packages.builds[i], Data.version, Data.build);
 			setenv("MIRROR", MIRROR, 1);
 			if (DownloadPkg(Data.name, NULL) == -1)
 				continue;
