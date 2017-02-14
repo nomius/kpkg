@@ -2,10 +2,10 @@ STRIP=strip
 STRIP_FLAGS_STATIC=--strip-debug
 STRIP_FLAGS_DYNAMIC=--strip-unneeded
 CC=cc
-#CFLAGS=-O2 -pedantic -Wall
-CFLAGS=-gdwarf-2 -g3
+CFLAGS=-O2 -pedantic -Wall
+#CFLAGS=-gdwarf-2 -g3
 SQLITE3=/usr/lib/libsqlite3.a
-CURL=/usr/lib/libcurl.a
+CURL=/usr/lib/libcurl.a /usr/lib/librtmp.a
 SSL=/usr/lib/libssl.a /usr/lib/libcrypto.a
 BZIP2=/usr/lib/libbz2.a
 LZMA=/usr/lib/liblzma.a
@@ -27,7 +27,7 @@ all: support.o sqlite_callbacks.o sqlite_backend.o file_operation.o db_creater.o
 
 kpkg_dynamic: support.o sqlite_callbacks.o sqlite_backend.o file_operation.o kpkg.o
 	$(CC) $(CFLAGS) -o kpkg_dynamic kpkg.o sqlite_backend.o sqlite_callbacks.o support.o file_operation.o $(DYNAMIC_KPKG_LDFLAGS)
-	#$(STRIP) $(STRIP_FLAGS_DYNAMIC) kpkg_dynamic
+	$(STRIP) $(STRIP_FLAGS_DYNAMIC) kpkg_dynamic
 
 file_operation.o: file_operation.c datastructs.h sqlite_callbacks.h
 	$(CC) $(CFLAGS) -c file_operation.c -o file_operation.o
