@@ -114,7 +114,7 @@ int FillPkgDataFromPackage(PkgData *Data, char *filename)
 	else
 		return 1;
 
-	Data->extension[strlen(Data->extension)-1] = '\0';
+	Data->extension[strlen(Data->extension)] = '\0';
 	GetSysDate(Data->date);
 
 	if (Data->name[0] == '\0' || Data->version[0] == '\0' || Data->arch[0] == '\0' || Data->build[0] == '\0' || Data->extension[0] == '\0')
