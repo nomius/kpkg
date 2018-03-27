@@ -48,7 +48,7 @@
 int ExistsPkg(PkgData *Data)
 {
 	char query[MAX_QUERY];
-	char versionb[10];
+	char versionb[PKG_VERSION+1];
 
 	strncpy(versionb, Data->version, PKG_VERSION);
 	memset(Data->version, '\0', sizeof(Data->version));
