@@ -139,7 +139,7 @@ int FillPkgDataFromPackage(PkgData *Data, char *filename)
 	return 0;
 }
 
-void usage(st)
+void usage(int st)
 {
 	fprintf(stdout, "Usage: db_creater <DB NAME> <DB LINK> <DB DESC> <LINKS PKG>\n");
 	if (st != -1)
