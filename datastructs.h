@@ -135,6 +135,7 @@ char *HOME_ROOT;
 char *MIRRORS_DIRECTORY;
 char *PACKAGES_DIRECTORY;
 int noreadme;
+int skip;
 char **Exceptions;
 int TotalExceptions;
 

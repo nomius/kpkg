@@ -573,9 +573,12 @@ int main(int argc, char *argv[])
 	}
 
 	noreadme = 0;
-	if ((renv = getenv("NOREADME")))
-		if (*renv)
-			noreadme = 1;
+	if ((getenv("NOREADME")))
+		noreadme = 1;
+
+	skip = 0;
+	if ((getenv("SKIP")))
+		skip = 1;
 
 	signal(SIGINT, cleanup);
 	signal(SIGTERM, cleanup);
@@ -595,10 +598,10 @@ int main(int argc, char *argv[])
 	}
 	else if (!strcmp(argv[1], "install"))
 		while (argv[++i] != NULL)
-			ret |= ret != 0 ? ret : InstallPkg(argv[i]);
+			ret |= (ret != 0 && !skip ? ret : InstallPkg(argv[i]));
 	else if (!strcmp(argv[1], "remove"))
 		while (argv[++i] != NULL)
-			ret |= ret != 0 ? ret : RemovePkg(argv[i], 0);
+			ret |= (ret != 0 && !skip ? ret : RemovePkg(argv[i], 0));
 	else if (!strcmp(argv[1], "search"))
 		while (argv[++i] != NULL)
 			ret |= SearchPkg(argv[i]);

@@ -166,6 +166,14 @@ Examples:
 
 NO_DOWNLOAD_OUTPUT=1 kpkg download irssi
 
+.TP
+.B SKIP
+Skip failures which makes kpkg to abort if a package that is not installed is asked to be removed or if a package that is already installed is asked to be installed again.
+
+Examples:
+
+SKIP=1 kpkg install non-existent irssi
+
 
 .SH AUTHOR
 David B. Cortarello <dcortarello@gmail.com>
