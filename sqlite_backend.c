@@ -48,11 +48,19 @@ int RemovePkgData(char *name)
 {
     char query[MAX_QUERY];
 
+	/* Let's open the database */
+	if (sqlite3_open(dbname, &Database)) {
+		fprintf(stderr, "Failed to open database %s (%s)\n", dbname, sqlite3_errmsg(Database));
+		return -1;
+	}
+
     snprintf(query, MAX_QUERY, "DELETE FROM PACKAGES WHERE NAME = '%s'", name);
     if (sqlite3_exec(Database, query, NULL, NULL, NULL)) {
         fprintf(stderr, "Couldn't remove the package %s from the database %s\n", name, dbname);
+		sqlite3_close(Database);
         return -1;
     }
+	sqlite3_close(Database);
     return 0;
 }
 
@@ -71,16 +79,25 @@ int RemovePkgFiles(char *name)
 	dirs.directories = NULL;
 	dirs.index = 0;
 
-	snprintf(query, MAX_QUERY, "SELECT NAME, FILENAME FROM FILESPKG WHERE NAME = '%s'", name);
-	if (sqlite3_exec(Database, query, &RemoveFileCallback, &dirs, NULL))
+	if (sqlite3_open(dbname, &Database)) {
+		fprintf(stderr, "Failed to open database %s (%s)\n", dbname, sqlite3_errmsg(Database));
 		return -1;
+	}
+
+	snprintf(query, MAX_QUERY, "SELECT NAME, FILENAME FROM FILESPKG WHERE NAME = '%s'", name);
+	if (sqlite3_exec(Database, query, &RemoveFileCallback, &dirs, NULL)) {
+		sqlite3_close(Database);
+		return -1;
+	}
 
 	/* This is not as reliable as it used to be, but it's waaaay faster */ 
 	snprintf(query, MAX_QUERY, "DELETE FROM FILESPKG WHERE NAME = '%s'", name);
 	if (sqlite3_exec(Database, query, NULL, NULL, NULL)) {
 		fprintf(stderr, "Error removing %s from the database. Looks like you have some orphans files\n", name);
+		sqlite3_close(Database);
 		return -1;
 	}
+	sqlite3_close(Database);
 
 	i = dirs.index;
 	/* Remove empty directories */
@@ -198,12 +215,19 @@ static int InsertPkgData(PkgData *Data)
 {
 	char query[MAX_QUERY];
 
-	snprintf(query, MAX_QUERY, "INSERT INTO PACKAGES (NAME, VERSION, ARCH, BUILD, EXTENSION, CRC, DATE) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s')", Data->name, Data->version, Data->arch, Data->build, Data->extension, Data->crc, Data->date);
-	if (sqlite3_exec(Database, query, NULL, NULL, NULL)) {
-		fprintf(stderr, "Couldn't store the package %s with version %s in %s\n", Data->name, Data->version, dbname);
+	if (sqlite3_open(dbname, &Database)) {
+		fprintf(stderr, "Failed to open database %s (%s)\n", dbname, sqlite3_errmsg(Database));
 		return -1;
 	}
 
+	snprintf(query, MAX_QUERY, "INSERT INTO PACKAGES (NAME, VERSION, ARCH, BUILD, EXTENSION, CRC, DATE) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s')", Data->name, Data->version, Data->arch, Data->build, Data->extension, Data->crc, Data->date);
+	if (sqlite3_exec(Database, query, NULL, NULL, NULL)) {
+		fprintf(stderr, "Couldn't store the package %s with version %s in %s\n", Data->name, Data->version, dbname);
+		sqlite3_close(Database);
+		return -1;
+	}
+
+	sqlite3_close(Database);
 	return 0;
 }
 
@@ -220,6 +244,11 @@ static int InsertPkgFile(char *name, char **filenames, char *crc, int fileCount)
 	int i = 0;
 	sqlite3_stmt *stmt;
 
+	if (sqlite3_open(dbname, &Database)) {
+		fprintf(stderr, "Failed to open database %s (%s)\n", dbname, sqlite3_errmsg(Database));
+		return -1;
+	}
+
 	sqlite3_exec(Database, "BEGIN TRANSACTION", NULL, NULL, NULL);
 
 	for (i = 0; i < fileCount; i++) {
@@ -229,21 +258,25 @@ static int InsertPkgFile(char *name, char **filenames, char *crc, int fileCount)
 
 		if (sqlite3_prepare(Database, "INSERT INTO FILESPKG (NAME, FILENAME, CRC) VALUES (?,?,?)", -1, &stmt, 0) != SQLITE_OK) {
 			fprintf(stderr, "Could not prepare statement");
+			sqlite3_close(Database);
 			return -1;
 		}
 
 		if (sqlite3_bind_text(stmt, 1, name, -1, SQLITE_STATIC) != SQLITE_OK) {
 			fprintf(stderr, "Could not bind first parameter");
+			sqlite3_close(Database);
 			return -1;
 		}
 
 		if (sqlite3_bind_text(stmt, 2, filenames[i], -1, SQLITE_STATIC) != SQLITE_OK) {
 			fprintf(stderr, "Could not bind second parameter");
+			sqlite3_close(Database);
 			return -1;
 		}
 
 		if (sqlite3_bind_text(stmt, 3, crc, -1, SQLITE_STATIC) != SQLITE_OK) {
 			fprintf(stderr, "Could not bind third parameter");
+			sqlite3_close(Database);
 			return -1;
 		}
 
@@ -255,6 +288,7 @@ static int InsertPkgFile(char *name, char **filenames, char *crc, int fileCount)
 
 	sqlite3_exec(Database, "COMMIT TRANSACTION", NULL, NULL, NULL);
 	sqlite3_reset(stmt);
+	sqlite3_close(Database);
 	
 	return 0;
 }
@@ -387,6 +421,12 @@ int GetListOfPackages(ListOfPackages *Packages)
 	return 0;
 }
 
+/**
+ * This function checks if there's a new version of a given package
+ * @param Data A structure with the package information to be checked
+ * @param MIRROR a pointer to a string which will be written with the found mirror (if any).
+ * @return If a new version if found 1, otherwise 0 is returned. If an error ocurr -1 is returned (and an error message is issued).
+ */
 int NewVersionAvailable(PkgData *Data, char *MIRROR)
 {
 	DIR *dip;
@@ -433,5 +473,41 @@ int NewVersionAvailable(PkgData *Data, char *MIRROR)
 	closedir(dip);
 
 	return 0;
+}
+
+
+/**
+ * This is a support function to know if a given package name exists in the PACKAGES database. If the package exists in the database, its info is restored in the Data structure given
+ * @param Data A data structure with the name of the package
+ * @return If the package exists, 1 is returned, if it doesn't, 0 is returned. If an error ocurrs, -1 is returned (And an error message is issued).
+ */
+int ExistsPkg(PkgData *Data)
+{
+	char query[MAX_QUERY];
+	char versionb[PKG_VERSION+1];
+
+	strncpy(versionb, Data->version, PKG_VERSION);
+	memset(Data->version, '\0', sizeof(Data->version));
+
+	if (sqlite3_open(dbname, &Database)) {
+		fprintf(stderr, "Failed to open database %s (%s)\n", dbname, sqlite3_errmsg(Database));
+		return -1;
+	}
+
+	snprintf(query, MAX_QUERY, "SELECT NAME, VERSION, ARCH, BUILD, EXTENSION FROM PACKAGES WHERE NAME = '%s'", Data->name);
+	if (sqlite3_exec(Database, query, &ReturnSilentDataFromDB, Data, NULL)) {
+		fprintf(stderr, "Couldn't search for [%s] in database [%s]\n", Data->name, dbname);
+		sqlite3_close(Database);
+		return -1;
+	}
+
+	sqlite3_close(Database);
+
+	if (*Data->version == '\0') {
+		strncpy(Data->version, versionb, PKG_VERSION);
+		return 0;
+	}
+
+	return 1;
 }
 

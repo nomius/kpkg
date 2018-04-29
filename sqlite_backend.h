@@ -49,5 +49,6 @@ int SearchLinkForPackage(char *name, ListOfLinks *Links, char *MIRROR);
 int GetDataFromMirrorDatabase(char *db, char *field, char *value);
 int GetListOfPackages(ListOfPackages *Packages);
 int NewVersionAvailable(PkgData *Data, char *MIRROR);
+int ExistsPkg(PkgData *Data);
 
 #endif
