@@ -136,6 +136,7 @@ char *MIRRORS_DIRECTORY;
 char *PACKAGES_DIRECTORY;
 int noreadme;
 int skip;
+int force;
 char **Exceptions;
 int TotalExceptions;
 

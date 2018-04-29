@@ -57,13 +57,6 @@ int RemovePkg(char *name, int silent)
 	PkgData Data;
 	char *pathb = getcwd(malloc(PATH_MAX), PATH_MAX);
 
-	/* Let's open the database */
-	if (sqlite3_open(dbname, &Database)) {
-		fprintf(stderr, "Failed to open database %s (%s)\n", dbname, sqlite3_errmsg(Database));
-		free(pathb);
-		return -1;
-	}
-
 	/* Switch to HOME_ROOT */
 	if (chdir(HOME_ROOT)) {
 		fprintf(stderr, "Can't go to %s (%s)\n", HOME_ROOT, strerror(errno));
@@ -91,7 +84,6 @@ int RemovePkg(char *name, int silent)
 
 	/* Removing this package from the database */
 	ret = RemovePkgData(name);
-	sqlite3_close(Database);
 
 	/* Go back and clean up this mess */
 	chdir(pathb);
@@ -204,20 +196,20 @@ int InstallPkg(char *package)
 		return -1;
 	}
 
-	/* Open the database */
-	if (sqlite3_open(dbname, &Database)) {
-		fprintf(stderr, "Failed to open database %s (%s)\n", dbname, sqlite3_errmsg(Database));
-		chdir(init_path);
-		free(init_path);
-		return -1;
-	}
-
 	/* Check if it is already installed */
 	if (ExistsPkg(&Data)) {
 		fprintf(stderr, "Package %s already installed\n", PackageOrig);
-		chdir(init_path);
-		free(init_path);
-		return 1;
+		if (!force) {
+			chdir(init_path);
+			free(init_path);
+			return 1;
+		}
+		if (RemovePkg(Data.name, 1)) {
+			fprintf(stderr, "FORCE was enabled, but previous package removal failed on. I'm giving up.");
+			chdir(init_path);
+			free(init_path);
+			return 1;
+		}
 	}
 
 	/* Get the package hash so we can register it in the database */
@@ -579,6 +571,10 @@ int main(int argc, char *argv[])
 	skip = 0;
 	if ((getenv("SKIP")))
 		skip = 1;
+
+	force = 0;
+	if ((getenv("FORCE")))
+		force = 1;
 
 	signal(SIGINT, cleanup);
 	signal(SIGTERM, cleanup);
