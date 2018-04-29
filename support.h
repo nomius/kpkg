@@ -40,7 +40,6 @@
 #ifndef SUPPORT_H
 #define SUPPORT_H
 
-int ExistsPkg(PkgData *Data);
 int FillPkgDataFromPackage(PkgData *Data, char *filename);
 void freeLinks(ListOfLinks *Links);
 int GetFileFullPath(char *package, char *pkgfullpathname);

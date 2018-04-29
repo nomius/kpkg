@@ -40,40 +40,6 @@
 #include "datastructs.h"
 #include "support.h"
 
-/**
- * This is a support function to know if a given package name exists in the PACKAGES database. If the package exists in the database, its info is restored in the Data structure given
- * @param Data A data structure with the name of the package
- * @return If the package exists, 1 is returned, if it doesn't, 0 is returned. If an error ocurrs, -1 is returned (And an error message is issued).
- */
-int ExistsPkg(PkgData *Data)
-{
-	char query[MAX_QUERY];
-	char versionb[PKG_VERSION+1];
-
-	strncpy(versionb, Data->version, PKG_VERSION);
-	memset(Data->version, '\0', sizeof(Data->version));
-
-	if (!Database)
-		if (sqlite3_open(dbname, &Database)) {
-			fprintf(stderr, "Failed to open database %s (%s)\n", dbname, sqlite3_errmsg(Database));
-			return -1;
-		}
-
-
-	snprintf(query, MAX_QUERY, "SELECT NAME, VERSION, ARCH, BUILD, EXTENSION FROM PACKAGES WHERE NAME = '%s'", Data->name);
-	if (sqlite3_exec(Database, query, &ReturnSilentDataFromDB, Data, NULL)) {
-		fprintf(stderr, "Couldn't search for [%s] in database [%s]\n", Data->name, dbname);
-		return -1;
-	}
-
-	if (*Data->version == '\0') {
-		strncpy(Data->version, versionb, PKG_VERSION);
-		return 0;
-	}
-
-	return 1;
-}
-
 static void GetSysDate(char *out)
 {
 	time_t rawtime;
