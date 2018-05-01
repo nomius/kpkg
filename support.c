@@ -128,7 +128,7 @@ int GetLinkFromInput(ListOfLinks *Links)
 	/* Input to get the link */
 	while (1) {
 		/* EOF leaves */
-		printf("Which one do you want to download? [q (cancel) / c (comment) / number]: ");
+		printf("Which one do you want to download? [q (cancel) / c (show comment) / number]: ");
 		s = getline(&input, (size_t *)&s, stdin);
 		if (*input == EOF || *input == '\n' || s == 0 || s == 1 || s == -1) {
 			free(input);
