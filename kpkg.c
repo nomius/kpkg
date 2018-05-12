@@ -155,7 +155,8 @@ int InstallPkg(char *package)
 	char *ptr_name = NULL, *init_path = NULL, *input = NULL;
 	char pkgfullpathname[PATH_MAX];
 	char PackageOrig[PATH_MAX];
-	int fd = 0;
+	int fd = 0, s = 0;
+
 	PkgData Data;
 
 	/* Save locations and initialize the package structure */
@@ -200,9 +201,16 @@ int InstallPkg(char *package)
 	if (ExistsPkg(&Data)) {
 		fprintf(stderr, "Package %s already installed\n", PackageOrig);
 		if (!force) {
-			chdir(init_path);
-			free(init_path);
-			return 1;
+			printf("Do you want to upgrade to the new version? [y/n]: ");
+			s = getline(&input, (size_t *)&s, stdin);
+			if (*input == EOF || *input == '\n' || s == 0 || s == 1 || s == -1 || *input != 'y') {
+				free(input);
+				chdir(init_path);
+				free(init_path);
+				return 1;
+			}
+			free(input);
+			input = NULL;
 		}
 		if (RemovePkg(Data.name, 1)) {
 			fprintf(stderr, "FORCE was enabled, but previous package removal failed on. I'm giving up.");
