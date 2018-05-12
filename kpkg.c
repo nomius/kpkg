@@ -207,7 +207,7 @@ int InstallPkg(char *package)
 				free(input);
 				chdir(init_path);
 				free(init_path);
-				return 1;
+				return 0;
 			}
 			free(input);
 			input = NULL;
