@@ -200,6 +200,8 @@ int InstallPkg(char *package)
 	/* Check if it is already installed */
 	if (ExistsPkg(&Data)) {
 		fprintf(stderr, "Package %s already installed\n", PackageOrig);
+		if (skip)
+			return 0;
 		if (!force) {
 			printf("Do you want to upgrade to the new version? [y/n]: ");
 			s = getline(&input, (size_t *)&s, stdin);
