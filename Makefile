@@ -19,11 +19,9 @@ STATIC_KPKG_LDFLAGS=$(SQLITE3) $(CURL) $(SSL) $(LIBARCHIVE) $(BZIP2) $(LZMA) $(Z
 
 LDFLAGS_DBCREATER=-lsqlite3 -lz
 
-all: support.o sqlite_callbacks.o sqlite_backend.o file_operation.o db_creater.o kpkg.o
+all: support.o sqlite_callbacks.o sqlite_backend.o file_operation.o kpkg.o
 	$(CC) $(CFLAGS) -o kpkg kpkg.o sqlite_backend.o sqlite_callbacks.o support.o file_operation.o $(STATIC_KPKG_LDFLAGS)
 	$(STRIP) $(STRIP_FLAGS_STATIC) kpkg
-	$(CC) -o db_creater db_creater.o $(LDFLAGS_DBCREATER)
-	$(STRIP) $(STRIP_FLAGS_DYNAMIC) db_creater
 
 kpkg_dynamic: support.o sqlite_callbacks.o sqlite_backend.o file_operation.o kpkg.o
 	$(CC) $(CFLAGS) -o kpkg_dynamic kpkg.o sqlite_backend.o sqlite_callbacks.o support.o file_operation.o $(DYNAMIC_KPKG_LDFLAGS)
@@ -44,11 +42,8 @@ support.o: support.c datastructs.h sqlite_callbacks.h
 kpkg.o: sqlite_backend.h datastructs.h sqlite_callbacks.h version.h
 	$(CC) $(CFLAGS) -c kpkg.c -o kpkg.o
 
-db_creater.o: db_creater.c
-	$(CC) -c db_creater.c -o db_creater.o
-
 version.h:
 	echo "#define VERSION `git shortlog | grep -E '^[ ]+\w+' | wc -l`" > version.h
 
 clean:
-	rm -f file_operation.o sqlite_backend.o sqlite_callbacks.o support.o kpkg.o version.h kpkg kpkg_dynamic db_creater
+	rm -f file_operation.o sqlite_backend.o sqlite_callbacks.o support.o kpkg.o version.h kpkg kpkg_dynamic

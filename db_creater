@@ -1,0 +1,109 @@
+#!/usr/bin/env python3.6
+
+#
+# Author David Bruno Cortarello <Nomius>. Redistribute under the terms of the
+# BSD-lite license. Bugs, suggests, nor projects: dcortarello@gmail.com
+#
+# Program: kpkg database creator
+# Version: 
+#
+#
+# Copyright (c) 2002-2018, David B. Cortarello
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+#  * Redistributions of source code must retain the above copyright notice
+#    and the following disclaimer.
+#  * Redistributions in binary form must reproduce the above copyright notice
+#    and the following disclaimer in the documentation and/or other materials
+#    provided with the distribution.
+#  * Neither the name of Kwort nor the names of its contributors may be used
+#    to endorse or promote products derived from this software without
+#    specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+#
+
+import sys
+import os
+import glob
+import zlib
+import sqlite3
+
+FMASK='*#*#*#*.tar.xz'
+
+SQLITE3_CREATE_STATEMENS = {}
+SQLITE3_CREATE_STATEMENS['MIRRORPKG'] = 'CREATE TABLE MIRRORPKG(NAME TEXT KEY ASC, VERSION TEXT, ARCH TEXT, BUILD TEXT, EXTENSION TEXT, LINK TEXT, CRC TEXT, COMMENT TEXT)'
+SQLITE3_CREATE_STATEMENS['MDATA'] = 'CREATE TABLE MDATA (FIELD TEXT KEY, VALUE TEXT)'
+
+def crc32(fileName):
+    prev = 0
+    for eachLine in open(fileName,"rb"):
+        prev = zlib.crc32(eachLine, prev)
+    return "%lu"%(prev & 0xFFFFFFFF)
+
+def CreateDatabase(dbfile):
+    try:
+        os.remove(dbfile)
+    except:
+        pass
+    kpkgdb = sqlite3.connect(dbfile)
+    kpkgc = kpkgdb.cursor()
+    kpkgc.execute(SQLITE3_CREATE_STATEMENS['MIRRORPKG'])
+    kpkgc.execute(SQLITE3_CREATE_STATEMENS['MDATA'])
+    kpkgc.execute("INSERT INTO MDATA (FIELD, VALUE) values ('LINK', '%s')" % (EXTERNAL_URL))
+    kpkgc.execute("INSERT INTO MDATA (FIELD, VALUE) values ('DESC', '%s')" % (MIRROR_DESC))
+    return kpkgdb,kpkgc
+
+def GetDataFromFile(filename):
+    crc32f = crc32(filename)
+    url = MIRROR_MAIN_PACKAGES_URL + filename[1:]
+    filename = os.path.basename(filename)
+    splitted = filename = filename.split('#')
+    name = splitted[0]
+    version = splitted[1]
+    arch = splitted[2]
+    build = splitted[3].split('.')[0]
+    extension = splitted[3].replace(build + ".", "")
+    return name, version, arch, build, extension, url, crc32f
+
+try:
+    DST_FILE=sys.argv[1]
+    EXTERNAL_URL=sys.argv[2]
+    MIRROR_DESC=sys.argv[3]
+    MIRROR_MAIN_PACKAGES_URL=sys.argv[4]
+except:
+    print("Usage:")
+    print("   " + sys.argv[0] + " <Destination file> <External URL for kdb file> <Mirror description> <Packages parent URL>")
+    exit(1)
+
+if sys.version_info < (3,5):
+    print("Python version required is at least 3.5")
+    exit(1)
+
+kpkgdb, kpkgc = CreateDatabase(DST_FILE)
+for filename in glob.iglob('./' + '**/' + FMASK , recursive=True):
+    name = ""
+    try:
+        name, version, arch, build, extension, url, crc32f = GetDataFromFile(filename)
+    except:
+        print("Wrong package format: %s is discarded" % (filename))
+    if name:
+        try:
+            kpkgc.execute("INSERT INTO MIRRORPKG (NAME, VERSION, ARCH, BUILD, EXTENSION, LINK, CRC) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s')" % (name, version, arch, build, extension, url, crc32f))
+        except:
+            print("Package %s not inserted in the database" % (filename))
+kpkgdb.commit()
+kpkgdb.close()
