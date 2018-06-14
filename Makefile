@@ -15,7 +15,7 @@ ACL=/usr/lib/libacl.a
 LZO=/usr/lib/liblzo2.a
 OPENSSL=/usr/lib/libssl.a
 DYNAMIC_KPKG_LDFLAGS=-lsqlite3 -larchive -lpthread -llzma -lbz2 -lz -lm -lc -lcurl -lssl -lcrypto -lrtmp -lssl -lacl -ldl
-STATIC_KPKG_LDFLAGS=$(SQLITE3) $(CURL) $(SSL) $(LIBARCHIVE) $(BZIP2) $(LZMA) $(ZLIB) $(READLINE) $(NCURSES) $(ACL) $(RTMP) $(LZO) $(OPENSSL) -ldl -lpthread
+STATIC_KPKG_LDFLAGS=$(SQLITE3) $(CURL) $(SSL) $(LIBARCHIVE) $(BZIP2) $(LZMA) $(ZLIB) $(READLINE) $(NCURSES) $(ACL) $(RTMP) $(LZO) $(OPENSSL) -ldl -lpthread -lm
 
 LDFLAGS_DBCREATER=-lsqlite3 -lz
 
