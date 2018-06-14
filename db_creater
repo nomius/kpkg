@@ -69,7 +69,7 @@ def CreateDatabase(dbfile):
 
 def GetDataFromFile(filename):
     crc32f = crc32(filename)
-    url = MIRROR_MAIN_PACKAGES_URL + filename[1:]
+    url = MIRROR_MAIN_PACKAGES_URL + filename[1:].replace('#', '%23')
     filename = os.path.basename(filename)
     splitted = filename = filename.split('#')
     name = splitted[0]
