@@ -612,9 +612,15 @@ int main(int argc, char *argv[])
 	else if (!strcmp(argv[1], "remove"))
 		while (argv[++i] != NULL)
 			ret |= (ret != 0 && !skip ? ret : RemovePkg(argv[i], 0));
-	else if (!strcmp(argv[1], "search"))
-		while (argv[++i] != NULL)
-			ret |= SearchPkg(argv[i]);
+	else if (!strcmp(argv[1], "search")) {
+		if (argv[2] == NULL)
+			ret |= SearchPkg(NULL);
+		else {
+			while (argv[++i] != NULL) {
+				ret |= SearchPkg(argv[i]);
+			}
+		}
+	}
 	else if (!strcmp(argv[1], "provides"))
 		while (argv[++i] != NULL)
 			ret |= SearchFileInPkgDB(argv[i]);

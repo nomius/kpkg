@@ -68,15 +68,15 @@ kpkg download xfmedia openoffice
 
 .TP
 .B search
-This option only search a package in the database, it doesn't install or remove any package. It doesn't modify the database at all. If you want to know all packages in the database, you can use "/all" as package name.
+This option only search a package in the database, it doesn't install or remove any package. It doesn't modify the database at all. If you want to know all packages installed in the database simply run it without any parameters. You can combine this option with the LOCAL variable to list only installed packages (see below).
 
 Examples:
 
-kpkg search en
+kpkg search fire
 
 kpkg search irssi
 
-kpkg search /all
+kpkg search
 
 .TP
 .B provides FILE
@@ -112,7 +112,7 @@ Examples:
 
 kpkg instkdb europa.kdb
 
-kpkg instkdb http://europa.fapyd.unr.edu.ar/pub/kwort/3.2/europa.kdb
+kpkg instkdb http://europa.fapyd.unr.edu.ar/pub/kwort/4.4/europa.kdb
 
 
 .SH ENVIRONMENT

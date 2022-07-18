@@ -134,7 +134,7 @@ int SearchPkg(char *name)
 		return -1;
 	}
 
-	if (!strcmp(name, "/all"))
+	if (!name)
 		snprintf(tmp, MAX_QUERY, "SELECT NAME, VERSION, ARCH, BUILD, EXTENSION, DATE FROM PACKAGES");
 	else
 		snprintf(tmp, MAX_QUERY, "SELECT NAME, VERSION, ARCH, BUILD, EXTENSION, DATE FROM PACKAGES WHERE NAME LIKE '%%%s%%'", name);
@@ -163,7 +163,10 @@ int SearchPkg(char *name)
 				closedir(dip);
 				return -1;
 			}
-			snprintf(tmp, MAX_QUERY, "SELECT NAME, VERSION, ARCH, BUILD, EXTENSION, COMMENT FROM MIRRORPKG WHERE NAME LIKE '%%%s%%'", name);
+			if (name)
+				snprintf(tmp, MAX_QUERY, "SELECT NAME, VERSION, ARCH, BUILD, EXTENSION, COMMENT FROM MIRRORPKG WHERE NAME LIKE '%%%s%%'", name);
+			else
+				snprintf(tmp, MAX_QUERY, "SELECT NAME, VERSION, ARCH, BUILD, EXTENSION, COMMENT FROM MIRRORPKG");
 			if (sqlite3_exec(TMPDatabase, tmp, &SearchPkgPrintCallback, &found, NULL)) {
 				sqlite3_close(Database);
 				closedir(dip);
