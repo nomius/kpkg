@@ -129,6 +129,11 @@ typedef struct _ListOfLinks {
 	int index;
 } ListOfLinks;
 
+typedef struct _ResultFound {
+	int found;
+	char mirror_name[NAME_MAX];
+} ResultFound;
+
 char *dbname;
 sqlite3 *Database;
 char *HOME_ROOT;

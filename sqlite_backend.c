@@ -112,7 +112,36 @@ int RemovePkgFiles(char *name)
 
 	dirs.index = i;
 	free(dirs.directories);
-    return 0;
+	return 0;
+}
+
+
+/**
+ * This function is a generic function to get data (according to the field given) from MDATA table in the mirror's database
+ * @param db A string giving the sqlite3 database to be used
+ * @param field The field that you want to filter
+ * @param value The string where you want the returned data to be saved
+ * @return If no error ocurr, 0 is returned. If an error ocurr -1 is returned (and an error message is issued).
+ */
+int GetDataFromMirrorDatabase(char *db, char *field, char *value)
+{
+	sqlite3 *TMPDatabase;
+	char query[MAX_QUERY];
+
+	if (sqlite3_open(db, &TMPDatabase)) {
+		fprintf(stderr, "Failed to open database %s (%s)\n", db, sqlite3_errmsg(TMPDatabase));
+		return -1;
+	}
+
+	snprintf(query, MAX_QUERY, "SELECT VALUE FROM MDATA WHERE FIELD = '%s'", field);
+	if (sqlite3_exec(TMPDatabase, query, &GetFieldCallback, value, NULL)) {
+		fprintf(stderr, "Couldn't search for %s (%s)\n", field, sqlite3_errmsg(Database));
+		sqlite3_close(TMPDatabase);
+		return -1;
+	}
+	sqlite3_close(TMPDatabase);
+
+	return 0;
 }
 
 
@@ -123,11 +152,12 @@ int RemovePkgFiles(char *name)
  */
 int SearchPkg(char *name)
 {
-	int found = 0;
+	ResultFound found;
 	DIR *dip;
 	struct dirent *dit;
 	char tmp[MAX_QUERY];
 	sqlite3 *TMPDatabase;
+	found.found = 0;
 
 	if (sqlite3_open(dbname, &Database)) {
 		fprintf(stderr, "Failed to open database %s (%s)\n", dbname, sqlite3_errmsg(Database));
@@ -152,11 +182,16 @@ int SearchPkg(char *name)
 			return -1;
 		}
 
-		found = 2;
+		found.found = 2;
 		while ((dit = readdir(dip)) != NULL) {
 			if (!strcmp(dit->d_name, ".") || !strcmp(dit->d_name, ".."))
 				continue;
 
+			sprintf(tmp, "%s/%s", MIRRORS_DIRECTORY, dit->d_name);
+			if(GetDataFromMirrorDatabase(tmp, "DESC", found.mirror_name) == -1) {
+				fprintf(stderr, "Failed to get database description");
+				return -1;
+			}
 			sprintf(tmp, "%s/%s", MIRRORS_DIRECTORY, dit->d_name);
 			if (sqlite3_open(tmp, &TMPDatabase)) {
 				fprintf(stderr, "Failed to open database %s (%s)\n", dbname, sqlite3_errmsg(Database));
@@ -176,11 +211,7 @@ int SearchPkg(char *name)
 		}
 		closedir(dip);
 	}
-
-	if (!found)
-		fprintf(stdout, "Package %s does not exists in database\n", name);
-
-	return (found == 0 && found == 2)?0:1;
+	return (found.found == 0 || found.found == 2) ? 0 : 1;
 }
 
 
@@ -367,34 +398,6 @@ int SearchLinkForPackage(char *name, ListOfLinks *Links, char *MIRROR)
 	return 0;
 }
 
-
-/**
- * This function is a generic function to get data (according to the field given) from MDATA table in the mirror's database
- * @param db A string giving the sqlite3 database to be used
- * @param field The field that you want to filter
- * @param value The string where you want the returned data to be saved
- * @return If no error ocurr, 0 is returned. If an error ocurr -1 is returned (and an error message is issued).
- */
-int GetDataFromMirrorDatabase(char *db, char *field, char *value)
-{
-	sqlite3 *TMPDatabase;
-	char query[MAX_QUERY];
-
-	if (sqlite3_open(db, &TMPDatabase)) {
-		fprintf(stderr, "Failed to open database %s (%s)\n", db, sqlite3_errmsg(TMPDatabase));
-		return -1;
-	}
-
-	snprintf(query, MAX_QUERY, "SELECT VALUE FROM MDATA WHERE FIELD = '%s'", field);
-	if (sqlite3_exec(TMPDatabase, query, &GetFieldCallback, value, NULL)) {
-		fprintf(stderr, "Couldn't search for %s (%s)\n", field, sqlite3_errmsg(Database));
-		sqlite3_close(TMPDatabase);
-		return -1;
-	}
-	sqlite3_close(TMPDatabase);
-
-	return 0;
-}
 
 /**
  * This function provides a list of the installed packages in the system
