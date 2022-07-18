@@ -28,7 +28,7 @@ This option updates a package database from all mirrors installed or from the mi
 Example:
 
 kpkg update 
-
+.br
 kpkg update europa
 .TP
 .B install PACKAGE1 [PACKAGE2 ...]
@@ -37,11 +37,11 @@ This option allows you to install a package from a local place or from the chose
 Examples:
 
 kpkg install irssi
-
+.br
 kpkg install wbar irssi
-
+.br
 kpkg install /home/user/openoffice#2.0#i486#1.tar.xz
-
+.br
 kpkg install /var/packages/downloads/xfmedia#0.9.1#i486#1.tar.gz /home/user/openoffice#2.0#i486#1.tar.xz 
 
 .TP
@@ -51,7 +51,7 @@ Use this option to remove installed packages.
 Examples:
 
 kpkg remove openoffice
-
+.br
 kpkg remove xfmedia openoffice
 .PP
 ATTENTION: This option does not remove packages installed from source. Only packages installed with kpkg. 
@@ -63,7 +63,7 @@ With this option you download packages from the mirror but don't install them. T
 Examples:
 
 kpkg download openoffice
-
+.br
 kpkg download xfmedia openoffice
 
 .TP
@@ -73,9 +73,9 @@ This option only search a package in the database, it doesn't install or remove 
 Examples:
 
 kpkg search fire
-
+.br
 kpkg search irssi
-
+.br
 kpkg search
 
 .TP
@@ -93,7 +93,7 @@ This option upgrades the whole system or a given package name from the mirror's.
 Examples:
 
 kpkg upgrade
-
+.br
 kpkg upgrade irssi
 
 .TP
@@ -111,7 +111,7 @@ Use this option to install a Kwort compatible kdb file. You can pass a kdb file 
 Examples:
 
 kpkg instkdb europa.kdb
-
+.br
 kpkg instkdb http://europa.fapyd.unr.edu.ar/pub/kwort/4.4/europa.kdb
 
 
@@ -149,6 +149,7 @@ When searching packages, this variable will tell the package manager if the sear
 Examples:
 
 LOCAL=1 kpkg search firefox
+.br
 LOCAL=1 CSV=1 kpkg search
 
 .TP
@@ -190,6 +191,7 @@ If a package is already installed and install is given, this variable will force
 Examples:
 
 kpkg install irssi
+.br
 FORCE=1 kpkg install irssi
 
 
