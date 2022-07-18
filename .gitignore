@@ -1,0 +1,4 @@
+*.o
+kpkg
+kpkg_dynamic
+version.h
