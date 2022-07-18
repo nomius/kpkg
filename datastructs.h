@@ -137,6 +137,7 @@ char *PACKAGES_DIRECTORY;
 int noreadme;
 int skip;
 int force;
+int local_only;
 char **Exceptions;
 int TotalExceptions;
 

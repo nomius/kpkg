@@ -140,7 +140,16 @@ Using the search command willl produce a human readable form list of installed p
 
 Examples:
 
-CSV=yes kpkg install search /all
+CSV=yes kpkg search firefox
+
+.TP
+.B LOCAL
+When searching packages, this variable will tell the package manager if the search context is the installed packages database or all mirror's database. Bear in mind that not using LOCAL on an empty search will return the whole list of installed and not installed packages making the output very long. You can combine this variable with CSV one also.
+
+Examples:
+
+LOCAL=1 kpkg search firefox
+LOCAL=1 CSV=1 kpkg search
 
 .TP
 .B MIRROR

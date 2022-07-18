@@ -146,31 +146,33 @@ int SearchPkg(char *name)
 	}
 	sqlite3_close(Database);
 
-	if ((dip = opendir(MIRRORS_DIRECTORY)) == NULL) {
-		fprintf(stderr, "Couldn't open the mirror's database directory %s (%s)\n", MIRRORS_DIRECTORY, strerror(errno));
-		return -1;
-	}
-
-	found = 2;
-	while ((dit = readdir(dip)) != NULL) {
-		if (!strcmp(dit->d_name, ".") || !strcmp(dit->d_name, ".."))
-			continue;
-
-		sprintf(tmp, "%s/%s", MIRRORS_DIRECTORY, dit->d_name);
-		if (sqlite3_open(tmp, &TMPDatabase)) {
-			fprintf(stderr, "Failed to open database %s (%s)\n", dbname, sqlite3_errmsg(Database));
-			closedir(dip);
+	if (!local_only) {
+		if ((dip = opendir(MIRRORS_DIRECTORY)) == NULL) {
+			fprintf(stderr, "Couldn't open the mirror's database directory %s (%s)\n", MIRRORS_DIRECTORY, strerror(errno));
 			return -1;
 		}
-		snprintf(tmp, MAX_QUERY, "SELECT NAME, VERSION, ARCH, BUILD, EXTENSION, COMMENT FROM MIRRORPKG WHERE NAME LIKE '%%%s%%'", name);
-		if (sqlite3_exec(TMPDatabase, tmp, &SearchPkgPrintCallback, &found, NULL)) {
-			sqlite3_close(Database);
-			closedir(dip);
-			return -1;
+
+		found = 2;
+		while ((dit = readdir(dip)) != NULL) {
+			if (!strcmp(dit->d_name, ".") || !strcmp(dit->d_name, ".."))
+				continue;
+
+			sprintf(tmp, "%s/%s", MIRRORS_DIRECTORY, dit->d_name);
+			if (sqlite3_open(tmp, &TMPDatabase)) {
+				fprintf(stderr, "Failed to open database %s (%s)\n", dbname, sqlite3_errmsg(Database));
+				closedir(dip);
+				return -1;
+			}
+			snprintf(tmp, MAX_QUERY, "SELECT NAME, VERSION, ARCH, BUILD, EXTENSION, COMMENT FROM MIRRORPKG WHERE NAME LIKE '%%%s%%'", name);
+			if (sqlite3_exec(TMPDatabase, tmp, &SearchPkgPrintCallback, &found, NULL)) {
+				sqlite3_close(Database);
+				closedir(dip);
+				return -1;
+			}
+			sqlite3_close(TMPDatabase);
 		}
-		sqlite3_close(TMPDatabase);
+		closedir(dip);
 	}
-	closedir(dip);
 
 	if (!found)
 		fprintf(stdout, "Package %s does not exists in database\n", name);

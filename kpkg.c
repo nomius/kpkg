@@ -586,6 +586,10 @@ int main(int argc, char *argv[])
 	if ((getenv("FORCE")))
 		force = 1;
 
+	local_only = 0;
+	if ((getenv("LOCAL")))
+		local_only = 1;
+
 	signal(SIGINT, cleanup);
 	signal(SIGTERM, cleanup);
 
