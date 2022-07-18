@@ -3,9 +3,9 @@ STRIP_FLAGS_STATIC=--strip-debug
 STRIP_FLAGS_DYNAMIC=--strip-unneeded
 CC=cc
 CFLAGS=-O2 -pedantic -Wall
-#CFLAGS=-gdwarf-2 -g3
+#CFLAGS_DEBUG=-gdwarf-2 -g3
 SQLITE3=/usr/lib/libsqlite3.a
-CURL=/usr/lib/libcurl.a /usr/lib/librtmp.a
+CURL=/usr/lib/libcurl.a
 SSL=/usr/lib/libssl.a /usr/lib/libcrypto.a
 BZIP2=/usr/lib/libbz2.a
 LZMA=/usr/lib/liblzma.a
@@ -14,8 +14,11 @@ LIBARCHIVE=/usr/lib/libarchive.a
 ACL=/usr/lib/libacl.a
 LZO=/usr/lib/liblzo2.a
 OPENSSL=/usr/lib/libssl.a
-DYNAMIC_KPKG_LDFLAGS=-lsqlite3 -larchive -lpthread -llzma -lbz2 -lz -lm -lc -lcurl -lssl -lcrypto -lrtmp -lssl -lacl -ldl
-STATIC_KPKG_LDFLAGS=$(SQLITE3) $(CURL) $(SSL) $(LIBARCHIVE) $(BZIP2) $(LZMA) $(ZLIB) $(READLINE) $(NCURSES) $(ACL) $(RTMP) $(LZO) $(OPENSSL) -ldl -lpthread -lm
+ZSTD=/usr/lib/libzstd.a
+NGHTTP2=/usr/lib/libnghttp2.a
+EXPAT=/usr/lib/libexpat.a
+DYNAMIC_KPKG_LDFLAGS=-lsqlite3 -larchive -lpthread -llzma -lbz2 -lz -lm -lc -lcurl -lssl -lcrypto -lssl -lacl -ldl -lnghttp2 -lzstd
+STATIC_KPKG_LDFLAGS=$(SQLITE3) $(CURL) $(SSL) $(LIBARCHIVE) $(BZIP2) $(LZMA) $(ZLIB) $(READLINE) $(NCURSES) $(ACL) $(RTMP) $(LZO) $(OPENSSL) $(ZSTD) $(NGHTTP2) $(EXPAT) -ldl -lpthread -lm
 
 LDFLAGS_DBCREATER=-lsqlite3 -lz
 
@@ -24,7 +27,7 @@ all: support.o sqlite_callbacks.o sqlite_backend.o file_operation.o kpkg.o
 	$(STRIP) $(STRIP_FLAGS_STATIC) kpkg
 
 kpkg_dynamic: support.o sqlite_callbacks.o sqlite_backend.o file_operation.o kpkg.o
-	$(CC) $(CFLAGS) -o kpkg_dynamic kpkg.o sqlite_backend.o sqlite_callbacks.o support.o file_operation.o $(DYNAMIC_KPKG_LDFLAGS)
+	$(CC) $(CFLAGS) $(CFLAGS_DEBUG) -o kpkg_dynamic kpkg.o sqlite_backend.o sqlite_callbacks.o support.o file_operation.o $(DYNAMIC_KPKG_LDFLAGS)
 	$(STRIP) $(STRIP_FLAGS_DYNAMIC) kpkg_dynamic
 
 file_operation.o: file_operation.c datastructs.h sqlite_callbacks.h
