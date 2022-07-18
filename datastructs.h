@@ -36,6 +36,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifndef _DATASTRUCTS_H
+#define _DATASTRUCTS_H 1
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -57,6 +59,7 @@
 #include <archive.h>
 #include <archive_entry.h>
 #include <time.h>
+
 #include "sqlite_callbacks.h"
 
 #define MAX_QUERY (PATH_MAX+40+80)
@@ -146,3 +149,4 @@ int local_only;
 char **Exceptions;
 int TotalExceptions;
 
+#endif

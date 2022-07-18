@@ -65,7 +65,7 @@ int FillPkgDataFromPackage(PkgData *Data, char *filename)
 	char *fields[] = { Data->name, Data->version, Data->arch, tmp};
 	register int i = 0;
 
-	strncpy(tmp2, filename, PATH_MAX);
+	strncpy(tmp2, filename, PATH_MAX-1);
 
 	for (tstr = strtok(tmp2, "#"); i <= 3; tstr = strtok(NULL, "#"), i++) {
 		if (!tstr)

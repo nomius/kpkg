@@ -46,7 +46,7 @@
  */
 int RemovePkgData(char *name)
 {
-    char query[MAX_QUERY];
+	char query[MAX_QUERY];
 
 	/* Let's open the database */
 	if (sqlite3_open(dbname, &Database)) {
@@ -54,14 +54,14 @@ int RemovePkgData(char *name)
 		return -1;
 	}
 
-    snprintf(query, MAX_QUERY, "DELETE FROM PACKAGES WHERE NAME = '%s'", name);
-    if (sqlite3_exec(Database, query, NULL, NULL, NULL)) {
-        fprintf(stderr, "Couldn't remove the package %s from the database %s\n", name, dbname);
+	snprintf(query, MAX_QUERY, "DELETE FROM PACKAGES WHERE NAME = '%s'", name);
+	if (sqlite3_exec(Database, query, NULL, NULL, NULL)) {
+		fprintf(stderr, "Couldn't remove the package %s from the database %s\n", name, dbname);
 		sqlite3_close(Database);
-        return -1;
-    }
+		return -1;
+	}
 	sqlite3_close(Database);
-    return 0;
+	return 0;
 }
 
 
@@ -72,7 +72,7 @@ int RemovePkgData(char *name)
  */
 int RemovePkgFiles(char *name)
 {
-    char query[MAX_QUERY];
+	char query[MAX_QUERY];
 	myDir dirs;
 	int i = 0;
 
@@ -211,7 +211,7 @@ int SearchPkg(char *name)
 		}
 		closedir(dip);
 	}
-	return (found.found == 0 || found.found == 2) ? 0 : 1;
+	return (found.found == 1 || found.found == 2) ? 0 : 1;
 }
 
 
@@ -429,6 +429,7 @@ int GetListOfPackages(ListOfPackages *Packages)
 	return 0;
 }
 
+
 /**
  * This function checks if there's a new version of a given package
  * @param Data A structure with the package information to be checked
@@ -469,9 +470,9 @@ int NewVersionAvailable(PkgData *Data, char *MIRROR)
 		sqlite3_close(TMPDatabase);
 		/* Return the mirror if the version or builds found are differents */
 		if (TMPData.version[0] != '\0' && TMPData.build[0] != '\0' && (strcmp(TMPData.version, Data->version) || strcmp(TMPData.build, Data->build))) {
-			strncpy(Data->version, TMPData.version, PKG_VERSION);
-			strncpy(Data->build, TMPData.build, PKG_BUILD);
-			strncpy(MIRROR, dit->d_name, NAME_MAX);
+			strcpy(Data->version, TMPData.version);
+			strcpy(Data->build, TMPData.build);
+			strcpy(MIRROR, dit->d_name);
 			sqlite3_close(TMPDatabase);
 			closedir(dip);
 			return 1;
@@ -494,7 +495,7 @@ int ExistsPkg(PkgData *Data)
 	char query[MAX_QUERY];
 	char versionb[PKG_VERSION+1];
 
-	strncpy(versionb, Data->version, PKG_VERSION);
+	strcpy(versionb, Data->version);
 	memset(Data->version, '\0', sizeof(Data->version));
 
 	if (sqlite3_open(dbname, &Database)) {

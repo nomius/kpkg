@@ -105,7 +105,7 @@ int InstKpkgDB(char *dbpath)
 
 	/* Create the destination database */
 	origdb = basename(dbpath);
-	snprintf(tmp, PATH_MAX, "%s/%s", MIRRORS_DIRECTORY, origdb);
+	snprintf(tmp, PATH_MAX-1, "%s/%s", MIRRORS_DIRECTORY, origdb);
 
 	/* Open the user database */
 	if ((fdi = open(dbpath, O_RDONLY)) < 0) {
@@ -125,7 +125,7 @@ int InstKpkgDB(char *dbpath)
 		fprintf(stderr, "Can't open %s for writing (%s)\n", dbpath, strerror(errno));
 		return -1;
 	}
-	strncpy(fileremove, tmp, PATH_MAX-1);
+	strcpy(fileremove, tmp);
 
 	/* Read and write */
 	while ((i = read(fdi, tmpbuf, PATH_MAX)) > 0)
@@ -160,7 +160,7 @@ int InstallPkg(char *package)
 	PkgData Data;
 
 	/* Save locations and initialize the package structure */
-	strncpy(PackageOrig, package, PATH_MAX);
+	strncpy(PackageOrig, package, PATH_MAX-1);
 	PackageOrig[strlen(package)>PATH_MAX?PATH_MAX:strlen(package)] = '\0';
 	init_path = getcwd(malloc(PATH_MAX), PATH_MAX);
 	memset(&Data, '\0', sizeof(PkgData));

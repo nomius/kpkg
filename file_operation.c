@@ -265,7 +265,7 @@ int Download(char *link, char *output)
 		fprintf(stderr, "Can't create the output file %s (%s)\n", output_tmp, strerror(errno));
 		return -1;
 	}
-	strncpy(fileremove, output_tmp, PATH_MAX-1);
+	strcpy(fileremove, output_tmp);
 
 	/* Initialize curl */
 	if (!(curl = curl_easy_init())) {
