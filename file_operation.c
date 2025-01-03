@@ -203,7 +203,7 @@ void PostInstall(void)
  * @param ultnow The acumulated chunk already uploaded when the function was called (this is not used in kpkg)
  * @return This function returns always 0
  */
-static int progress_func(void* clientp, double dltotal, double dlnow, double ultotal, double ulnow)
+static int progress_func(void* clientp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow)
 {
 	static int check = 0;
 	int columns, dots, i;
@@ -218,10 +218,10 @@ static int progress_func(void* clientp, double dltotal, double dlnow, double ult
 		else
 			columns = 51;
 
-		if (dlnow == 0.0)
+		if (dlnow == 0)
 			fractiondownloaded = 0.0;
 		else
-			fractiondownloaded = dlnow / dltotal;
+			fractiondownloaded = ((float)dlnow) / ((float)dltotal);
 
 		dots = (int)(fractiondownloaded * columns);
 
@@ -284,10 +284,10 @@ int Download(char *link, char *output)
 
 	if (!display) {
 		curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0);
-		curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progress_func);
+		curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, progress_func);
 	}
 	else
-		curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, NULL);
+		curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, NULL);
 
 	/* Do the job */
 	if((res = curl_easy_perform(curl)) != CURLE_OK) {
