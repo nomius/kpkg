@@ -161,6 +161,7 @@ int SaveListOfLinks(void *args, int numCols, char **results, char **columnNames)
 int SearchPkgPrintCallback(void *args, int numCols, char **results, char **columnNames)
 {
 	int i = 0;
+	char *local = "Locally installed";
 	int *found = &(((ResultFound *)args)->found);
 	char *mirror_name = ((ResultFound *)args)->mirror_name;
 	char *ecsv = NULL;
@@ -248,10 +249,13 @@ int SearchPkgPrintCallback(void *args, int numCols, char **results, char **colum
 			}
 		}
 	}
-	if (*mirror_name && !ecsv)
-		printf(" '->   Mirror: %s\n", mirror_name);
-
-	if (ecsv) {
+	if (!ecsv) {
+		if (*mirror_name)
+			printf(" '->   Mirror: %s\n", mirror_name);
+		else
+			printf(" '->   Mirror: %s\n", local);
+	}
+	else {
 		if (*found == 0)
 			printf("Installed;%s;%s;%s;%s;%s;%s", Data.name, Data.version, Data.arch, Data.build, Data.extension, Data.date);
 		else if (*found == 2)
