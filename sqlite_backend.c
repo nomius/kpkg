@@ -169,6 +169,7 @@ int SearchPkg(char *name)
 	else
 		snprintf(tmp, MAX_QUERY, "SELECT NAME, VERSION, ARCH, BUILD, EXTENSION, DATE FROM PACKAGES WHERE NAME LIKE '%%%s%%'", name);
 
+	memset(&found, 0, sizeof(ResultFound));
 	if (sqlite3_exec(Database, tmp, &SearchPkgPrintCallback, &found, NULL)) {
 		fprintf(stderr, "Couldn't search for %s (%s)\n", name, sqlite3_errmsg(Database));
 		sqlite3_close(Database);
